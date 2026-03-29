@@ -1,0 +1,255 @@
+---
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Phone, Mail, MapPin, Clock, Send, Calendar, CheckCircle } from "lucide-react";
+
+const contactInfo = [
+  {
+    icon: Phone,
+    label: "Telefono",
+    value: "+39 02 1234 5678",
+    href: "tel:+390212345678",
+    description: "Chiamaci per urgenze"
+  },
+  {
+    icon: Mail,
+    label: "Email",
+    value: "info@movimento.it",
+    href: "mailto:info@movimento.it",
+    description: "Rispondiamo entro 24h"
+  },
+  {
+    icon: MapPin,
+    label: "Indirizzo",
+    value: "Via Roma 123, Milano",
+    href: "https://maps.google.com",
+    description: "Facilmente raggiungibile"
+  },
+  {
+    icon: Clock,
+    label: "Orari",
+    value: "Lun-Ven: 9:00-19:00",
+    description: "Sabato su appuntamento"
+  }
+];
+---
+
+<section id="contact" class="section-padding bg-white dark:bg-slate-900">
+  <div class="max-w-7xl mx-auto container-padding">
+    <!-- Section Header -->
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <span class="inline-block px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium mb-4">
+        Contattaci
+      </span>
+      <h2 class="text-slate-900 dark:text-white mb-6">
+        Prenota la tua visita
+        <span class="text-gradient"> oggi stesso</span>
+      </h2>
+      <p class="text-lg text-slate-600 dark:text-slate-300">
+        Siamo qui per aiutarti. Compila il form per richiedere una consulenza gratuita 
+        o contattaci direttamente per una risposta immediata.
+      </p>
+    </div>
+
+    <div class="grid lg:grid-cols-5 gap-8 lg:gap-12">
+      <!-- Contact Form -->
+      <div class="lg:col-span-3">
+        <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-lg">
+          <CardHeader className="pb-6">
+            <CardTitle className="text-xl text-slate-900 dark:text-white flex items-center gap-2">
+              <Send className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              Richiedi informazioni
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form class="space-y-6" action="#" method="POST">
+              <!-- Name & Email Row -->
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <label for="name" class="form-label">
+                    Nome completo <span class="text-red-500">*</span>
+                  </label>
+                  <Input 
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="Mario Rossi"
+                    required
+                    className="form-input"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label for="email" class="form-label">
+                    Email <span class="text-red-500">*</span>
+                  </label>
+                  <Input 
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="mario@email.it"
+                    required
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <!-- Phone -->
+              <div class="space-y-2">
+                <label for="phone" class="form-label">Telefono</label>
+                <Input 
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="+39 333 123 4567"
+                  className="form-input"
+                />
+              </div>
+
+              <!-- Service Selection -->
+              <div class="space-y-2">
+                <label for="service" class="form-label">Servizio di interesse</label>
+                <select id="service" name="service" class="form-input">
+                  <option value="">Seleziona un servizio...</option>
+                  <option value="sportiva">Fisioterapia Sportiva</option>
+                  <option value="post-operatoria">Riabilitazione Post-operatoria</option>
+                  <option value="manuale">Terapia Manuale</option>
+                  <option value="altro">Altro / Non so</option>
+                </select>
+              </div>
+
+              <!-- Message -->
+              <div class="space-y-2">
+                <label for="message" class="form-label">
+                  Messaggio <span class="text-red-500">*</span>
+                </label>
+                <Textarea 
+                  id="message"
+                  name="message"
+                  placeholder="Descrivi il tuo problema o richiesta..."
+                  required
+                  rows={4}
+                  className="form-input resize-none"
+                />
+              </div>
+
+              <!-- Privacy Checkbox -->
+              <div class="flex items-start gap-3">
+                <input 
+                  type="checkbox" 
+                  id="privacy" 
+                  name="privacy"
+                  required
+                  class="mt-1 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                <label for="privacy" class="text-sm text-slate-600 dark:text-slate-400">
+                  Ho letto e accetto la 
+                  <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline">Privacy Policy</a>
+                  e autorizzo il trattamento dei miei dati personali.
+                </label>
+              </div>
+
+              <!-- Submit Button -->
+              <Button 
+                type="submit"
+                size="lg"
+                className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white btn-shine"
+              >
+                Invia richiesta
+                <Send className="ml-2 h-4 w-4" />
+              </Button>
+
+              <p class="text-xs text-slate-500 dark:text-slate-400 text-center">
+                Risponderemo alla tua richiesta entro 24 ore lavorative.
+              </p>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- Contact Info & Map -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Contact Cards -->
+        <div class="grid sm:grid-cols-2 lg:grid-cols-1 gap-4">
+          {contactInfo.map((info) => {
+            const Icon = info.icon;
+            return (
+              <a 
+                href={info.href}
+                class="group flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300"
+              >
+                <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600 dark:group-hover:bg-blue-500 transition-colors">
+                  <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors" />
+                </div>
+                <div>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{info.label}</p>
+                  <p class="font-semibold text-slate-900 dark:text-white">{info.value}</p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">{info.description}</p>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+
+        <!-- Quick CTA -->
+        <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700 text-white border-0">
+          <CardContent className="p-6">
+            <div class="flex items-center gap-3 mb-3">
+              <Calendar className="w-6 h-6" />
+              <h3 class="font-semibold text-lg">Prenota ora</h3>
+            </div>
+            <p class="text-emerald-100 text-sm mb-4">
+              Richiedi una consulenza gratuita di 15 minuti per valutare insieme il tuo percorso terapeutico.
+            </p>
+            <a href="tel:+390212345678">
+              <Button 
+                variant="secondary" 
+                className="w-full bg-white text-emerald-600 hover:bg-emerald-50"
+              >
+                <Phone className="mr-2 h-4 w-4" />
+                Chiama ora
+              </Button>
+            </a>
+          </CardContent>
+        </Card>
+
+        <!-- Map Placeholder -->
+        <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
+          <div class="relative h-48 bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+            <div class="text-center">
+              <MapPin className="w-12 h-12 text-slate-400 mx-auto mb-2" />
+              <p class="text-slate-500 dark:text-slate-400 text-sm">Mappa interattiva</p>
+              <p class="text-slate-400 dark:text-slate-500 text-xs">Via Roma 123, Milano</p>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-br from-slate-200 via-slate-300 to-slate-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 opacity-50"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <div class="w-4 h-4 bg-blue-600 rounded-full animate-ping absolute"></div>
+              <div class="w-4 h-4 bg-blue-600 rounded-full relative border-2 border-white"></div>
+            </div>
+          </div>
+          <div class="p-4 bg-white dark:bg-slate-800">
+            <a 
+              href="https://maps.google.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="flex items-center justify-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              <MapPin className="w-4 h-4" />
+              Apri in Google Maps
+            </a>
+          </div>
+        </div>
+
+        <!-- Success Guarantee -->
+        <div class="flex items-center gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+          <CheckCircle className="w-8 h-8 text-emerald-500 flex-shrink-0" />
+          <div>
+            <p class="font-medium text-slate-900 dark:text-white">Prima visita gratuita</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Valutazione senza impegno</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

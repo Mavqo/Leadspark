@@ -1,0 +1,759 @@
+api_version: 1.0.0
+project: leadspark
+description: API contracts for LeadSpark - AI Lead Capture Suite for Health & Wellness Professionals
+base_url: /api
+
+# ============================================================================
+# ZOD SCHEMAS - Runtime Validation
+# ============================================================================
+zod_schemas:
+  ChatMessageRequest:
+    code: |
+      import { z } from 'zod';
+      
+      export const ChatMessageRequestSchema = z.object({
+        message: z.string()
+          .min(1, 'Il messaggio è obbligatorio')
+          .max(500, 'Il messaggio non può superare i 500 caratteri'),
+        sessionId: z.string()
+          .uuid('sessionId deve essere un UUID valido'),
+        context: z.object({
+          step: z.string().optional(),
+          collectedData: z.record(z.unknown()).optional(),
+          previousMessages: z.array(z.object({
+            role: z.enum(['user', 'assistant']),
+            content: z.string()
+          })).optional()
+        }).optional()
+      });
+      
+      export type ChatMessageRequest = z.infer<typeof ChatMessageRequestSchema>;
+
+  ChatMessageResponse:
+    code: |
+      export const ChatActionSchema = z.object({
+        type: z.enum([
+          'collect_data', 
+          'show_calendar', 
+          'submit_form', 
+          'redirect',
+          'qualify_lead'
+        ]),
+        payload: z.record(z.unknown()).optional()
+      });
+      
+      export const LeadDataSchema = z.object({
+        name: z.string().optional(),
+        phone: z.string().optional(),
+        email: z.string().email().optional(),
+        sintomi: z.string().optional(),
+        durata: z.string().optional(),
+        urgenza: z.enum(['bassa', 'media', 'alta']).optional(),
+        disponibilita: z.string().optional(),
+        notes: z.string().optional()
+      });
+      
+      export const ChatMessageResponseSchema = z.object({
+        reply: z.string(),
+        actions: z.array(ChatActionSchema).optional(),
+        leadData: LeadDataSchema.optional(),
+        sessionId: z.string().uuid(),
+        timestamp: z.string().datetime()
+      });
+      
+      export type ChatMessageResponse = z.infer<typeof ChatMessageResponseSchema>;
+
+  LeadCaptureRequest:
+    code: |
+      export const LeadCaptureRequestSchema = z.object({
+        name: z.string()
+          .min(2, 'Il nome deve contenere almeno 2 caratteri')
+          .max(100, 'Il nome non può superare i 100 caratteri'),
+        phone: z.string()
+          .regex(/^\+?[0-9]{10,15}$/, 'Numero di telefono non valido'),
+        email: z.string()
+          .email('Email non valida')
+          .optional()
+          .or(z.literal('')),
+        sintomi: z.string()
+          .min(3, 'Descrivi i sintomi')
+          .max(500, 'I sintomi non possono superare i 500 caratteri'),
+        durata: z.string()
+          .min(1, 'Specifica la durata dei sintomi'),
+        urgenza: z.enum(['bassa', 'media', 'alta'], {
+          errorMap: () => ({ message: 'Livello di urgenza non valido' })
+        }),
+        disponibilita: z.string()
+          .min(1, 'Specifica la disponibilità'),
+        notes: z.string()
+          .max(1000, 'Le note non possono superare i 1000 caratteri')
+          .optional(),
+        source: z.literal('chatbot'),
+        sessionId: z.string().uuid()
+      });
+      
+      export type LeadCaptureRequest = z.infer<typeof LeadCaptureRequestSchema>;
+
+  LeadCaptureResponse:
+    code: |
+      export const LeadCaptureResponseSchema = z.object({
+        success: z.boolean(),
+        pazienteId: z.string().uuid(),
+        message: z.string(),
+        nextSteps: z.array(z.string()).optional(),
+        estimatedResponseTime: z.string().optional()
+      });
+      
+      export type LeadCaptureResponse = z.infer<typeof LeadCaptureResponseSchema>;
+
+  N8NWebhookRequest:
+    code: |
+      export const N8NWebhookEventSchema = z.object({
+        event: z.enum([
+          'paziente.qualified',
+          'notification.sent',
+          'notification.failed',
+          'calendar.booked',
+          'followup.required'
+        ]),
+        data: z.record(z.unknown()),
+        timestamp: z.string().datetime().optional(),
+        webhookId: z.string().uuid().optional()
+      });
+      
+      export type N8NWebhookRequest = z.infer<typeof N8NWebhookEventSchema>;
+
+# ============================================================================
+# TYPESCRIPT INTERFACES
+# ============================================================================
+typescript_interfaces:
+  code: |
+    // ============================================================================
+    // Chat Types
+    // ============================================================================
+    
+    export interface ChatContext {
+      step?: string;
+      collectedData?: Record<string, unknown>;
+      previousMessages?: Array<{
+        role: 'user' | 'assistant';
+        content: string;
+        timestamp?: string;
+      }>;
+    }
+    
+    export interface ChatAction {
+      type: 'collect_data' | 'show_calendar' | 'submit_form' | 'redirect' | 'qualify_lead';
+      payload?: Record<string, unknown>;
+    }
+    
+    export interface LeadData {
+      name?: string;
+      phone?: string;
+      email?: string;
+      sintomi?: string;
+      durata?: string;
+      urgenza?: 'bassa' | 'media' | 'alta';
+      disponibilita?: string;
+      notes?: string;
+      [key: string]: unknown; // Extensibility
+    }
+    
+    export interface ChatMessageRequest {
+      message: string;
+      sessionId: string;
+      context?: ChatContext;
+    }
+    
+    export interface ChatMessageResponse {
+      reply: string;
+      actions?: ChatAction[];
+      leadData?: LeadData;
+      sessionId: string;
+      timestamp: string;
+    }
+    
+    // ============================================================================
+    // Lead Capture Types
+    // ============================================================================
+    
+    export interface LeadCaptureRequest {
+      name: string;
+      phone: string;
+      email?: string;
+      sintomi: string;
+      durata: string;
+      urgenza: 'bassa' | 'media' | 'alta';
+      disponibilita: string;
+      notes?: string;
+      source: 'chatbot';
+      sessionId: string;
+      // Extensibility for future fields
+      [key: string]: unknown;
+    }
+    
+    export interface LeadCaptureResponse {
+      success: boolean;
+      pazienteId: string;
+      message: string;
+      nextSteps?: string[];
+      estimatedResponseTime?: string;
+    }
+    
+    // ============================================================================
+    // Webhook Types
+    // ============================================================================
+    
+    export type N8NWebhookEventType = 
+      | 'paziente.qualified' 
+      | 'notification.sent' 
+      | 'notification.failed'
+      | 'calendar.booked'
+      | 'followup.required';
+    
+    export interface N8NWebhookRequest {
+      event: N8NWebhookEventType;
+      data: Record<string, unknown>;
+      timestamp?: string;
+      webhookId?: string;
+    }
+    
+    export interface N8NWebhookResponse {
+      received: boolean;
+      processed: boolean;
+      webhookId: string;
+    }
+    
+    // ============================================================================
+    // Error Types
+    // ============================================================================
+    
+    export interface APIError {
+      code: string;
+      message: string;
+      details?: Record<string, string[]>;
+      requestId: string;
+    }
+    
+    export interface ValidationError {
+      field: string;
+      message: string;
+      value?: unknown;
+    }
+
+# ============================================================================
+# API ENDPOINTS
+# ============================================================================
+endpoints:
+  /api/chat:
+    method: POST
+    description: Chatbot conversation endpoint - processes user messages and returns AI responses
+    authentication: none
+    rate_limit:
+      requests: 30
+      window: 60  # seconds
+    request:
+      content-type: application/json
+      schema:
+        message:
+          type: string
+          required: true
+          minLength: 1
+          maxLength: 500
+          description: User message to the chatbot
+          example: "Ho mal di schiena da tre giorni"
+        sessionId:
+          type: string
+          format: uuid
+          required: true
+          description: Unique session identifier for conversation continuity
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        context:
+          type: object
+          required: false
+          properties:
+            step:
+              type: string
+              description: Current conversation step/state
+              example: "collecting_symptoms"
+            collectedData:
+              type: object
+              description: Partial data collected during conversation
+              additionalProperties: true
+            previousMessages:
+              type: array
+              description: Previous messages in conversation
+              items:
+                type: object
+                properties:
+                  role:
+                    type: string
+                    enum: ["user", "assistant"]
+                  content:
+                    type: string
+    response:
+      200:
+        description: Successful chat response
+        content-type: application/json
+        schema:
+          reply:
+            type: string
+            description: AI-generated bot response
+            example: "Mi dispiace sentirlo. Da quanto tempo ha questo dolore?"
+          actions:
+            type: array
+            description: Actions to be performed by frontend
+            items:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: ["collect_data", "show_calendar", "submit_form", "redirect", "qualify_lead"]
+                payload:
+                  type: object
+                  description: Action-specific data
+          leadData:
+            type: object
+            description: Partial lead data collected so far
+            properties:
+              name:
+                type: string
+              phone:
+                type: string
+              sintomi:
+                type: string
+              urgenza:
+                type: string
+                enum: ["bassa", "media", "alta"]
+            additionalProperties: true
+          sessionId:
+            type: string
+            format: uuid
+          timestamp:
+            type: string
+            format: date-time
+      400:
+        description: Validation error - invalid request data
+        content-type: application/json
+        schema:
+          code:
+            type: string
+            example: "VALIDATION_ERROR"
+          message:
+            type: string
+            example: "Invalid request data"
+          details:
+            type: object
+            additionalProperties:
+              type: array
+              items:
+                type: string
+          requestId:
+            type: string
+      429:
+        description: Rate limit exceeded
+        content-type: application/json
+        schema:
+          code:
+            type: string
+            example: "RATE_LIMIT_EXCEEDED"
+          message:
+            type: string
+            example: "Too many requests, please try again later"
+          retryAfter:
+            type: integer
+            description: Seconds until next allowed request
+      500:
+        description: Internal server error
+
+  /api/lead:
+    method: POST
+    description: Patient lead capture - stores qualified lead data
+    authentication: none
+    rate_limit:
+      requests: 10
+      window: 60
+    request:
+      content-type: application/json
+      schema:
+        name:
+          type: string
+          required: true
+          minLength: 2
+          maxLength: 100
+          description: Patient full name
+          example: "Mario Rossi"
+        phone:
+          type: string
+          required: true
+          pattern: "^\\+?[0-9]{10,15}$"
+          description: Patient phone number
+          example: "+393331234567"
+        email:
+          type: string
+          format: email
+          required: false
+          description: Patient email address
+          example: "mario.rossi@email.com"
+        sintomi:
+          type: string
+          required: true
+          minLength: 3
+          maxLength: 500
+          description: Described symptoms
+          example: "Mal di schiena lombare"
+        durata:
+          type: string
+          required: true
+          description: Duration of symptoms
+          example: "3 giorni"
+        urgenza:
+          type: string
+          enum: ["bassa", "media", "alta"]
+          required: true
+          description: Urgency level
+          example: "media"
+        disponibilita:
+          type: string
+          required: true
+          description: Patient availability for appointment
+          example: "Lun-Ven dopo le 18:00"
+        notes:
+          type: string
+          required: false
+          maxLength: 1000
+          description: Additional notes
+          example: "Preferisce mattina"
+        source:
+          type: string
+          const: "chatbot"
+          required: true
+        sessionId:
+          type: string
+          format: uuid
+          required: true
+    response:
+      200:
+        description: Lead successfully captured
+        content-type: application/json
+        schema:
+          success:
+            type: boolean
+            example: true
+          pazienteId:
+            type: string
+            format: uuid
+            description: Unique patient/lead identifier
+            example: "550e8400-e29b-41d4-a716-446655440001"
+          message:
+            type: string
+            example: "Grazie! La contatteremo presto per confermare l'appuntamento."
+          nextSteps:
+            type: array
+            items:
+              type: string
+            example: ["Verifica dati", "Contatto telefonico", "Conferma appuntamento"]
+          estimatedResponseTime:
+            type: string
+            example: "Entro 2 ore lavorative"
+      400:
+        description: Validation error
+      409:
+        description: Duplicate lead detected
+      500:
+        description: Server error
+
+  /api/webhook/n8n:
+    method: POST
+    description: n8n callback webhook - receives automation events
+    security:
+      - signature_header: x-webhook-signature
+      - signature_algorithm: hmac-sha256
+    request:
+      content-type: application/json
+      headers:
+        x-webhook-signature:
+          type: string
+          required: true
+          description: HMAC signature for verification
+      schema:
+        event:
+          type: string
+          enum: 
+            - "paziente.qualified"
+            - "notification.sent"
+            - "notification.failed"
+            - "calendar.booked"
+            - "followup.required"
+          required: true
+          description: Event type
+        data:
+          type: object
+          required: true
+          description: Event-specific data payload
+          additionalProperties: true
+        timestamp:
+          type: string
+          format: date-time
+          required: false
+        webhookId:
+          type: string
+          format: uuid
+          required: false
+    response:
+      200:
+        description: Webhook received and processed
+        content-type: application/json
+        schema:
+          received:
+            type: boolean
+          processed:
+            type: boolean
+          webhookId:
+            type: string
+      401:
+        description: Invalid webhook signature
+      400:
+        description: Invalid payload
+
+  /api/health:
+    method: GET
+    description: Health check endpoint
+    response:
+      200:
+        description: Service is healthy
+        content-type: application/json
+        schema:
+          status:
+            type: string
+            enum: ["healthy", "degraded"]
+          version:
+            type: string
+          timestamp:
+            type: string
+            format: date-time
+
+# ============================================================================
+# MOCK RESPONSES
+# ============================================================================
+mock_responses:
+  /api/chat:
+    - id: initial_greeting
+      description: Initial greeting response
+      input:
+        message: "Ciao"
+        sessionId: "550e8400-e29b-41d4-a716-446655440000"
+      output:
+        reply: "Buongiorno! Sono l'assistente virtuale dello studio. Come posso aiutarla oggi?"
+        actions: []
+        sessionId: "550e8400-e29b-41d4-a716-446655440000"
+        timestamp: "2024-01-15T10:00:00Z"
+
+    - id: symptom_collection
+      description: Symptom collection response
+      input:
+        message: "Ho mal di schiena"
+        sessionId: "550e8400-e29b-41d4-a716-446655440000"
+        context:
+          step: "collecting_symptoms"
+      output:
+        reply: "Mi dispiace sentirlo. Da quanto tempo ha questo dolore?"
+        actions:
+          - type: collect_data
+            payload:
+              field: "sintomi"
+              value: "mal di schiena"
+        leadData:
+          sintomi: "mal di schiena"
+        sessionId: "550e8400-e29b-41d4-a716-446655440000"
+        timestamp: "2024-01-15T10:01:00Z"
+
+    - id: urgency_assessment
+      description: Urgency assessment
+      input:
+        message: "Da tre giorni, è molto forte"
+        sessionId: "550e8400-e29b-41d4-a716-446655440000"
+        context:
+          step: "assessing_urgency"
+          collectedData:
+            sintomi: "mal di schiena"
+      output:
+        reply: "Capisco che è forte. Riesce a muoversi normalmente o ha difficoltà?"
+        leadData:
+          sintomi: "mal di schiena"
+          durata: "tre giorni"
+          urgenza: "media"
+        sessionId: "550e8400-e29b-41d4-a716-446655440000"
+        timestamp: "2024-01-15T10:02:00Z"
+
+    - id: contact_collection
+      description: Contact information collection
+      input:
+        message: "Mi chiamo Marco, il mio numero è 3331234567"
+        sessionId: "550e8400-e29b-41d4-a716-446655440000"
+        context:
+          step: "collecting_contact"
+          collectedData:
+            sintomi: "mal di schiena"
+            durata: "3 giorni"
+            urgenza: "media"
+      output:
+        reply: "Grazie Marco! Quando è disponibile per un appuntamento?"
+        actions:
+          - type: collect_data
+            payload:
+              field: "contact"
+              value:
+                name: "Marco"
+                phone: "3331234567"
+        leadData:
+          name: "Marco"
+          phone: "3331234567"
+          sintomi: "mal di schiena"
+          durata: "3 giorni"
+          urgenza: "media"
+        sessionId: "550e8400-e29b-41d4-a716-446655440000"
+        timestamp: "2024-01-15T10:03:00Z"
+
+    - id: final_submission
+      description: Ready for submission
+      input:
+        message: "Sono libero domani pomeriggio"
+        sessionId: "550e8400-e29b-41d4-a716-446655440000"
+        context:
+          step: "collecting_availability"
+          collectedData:
+            name: "Marco"
+            phone: "3331234567"
+            sintomi: "mal di schiena"
+            durata: "3 giorni"
+            urgenza: "media"
+      output:
+        reply: "Perfetto! Ho raccolto tutte le informazioni. La contatteremo al 3331234567 per confermare l'appuntamento. C'è altro che posso fare per lei?"
+        actions:
+          - type: submit_form
+            payload:
+              ready: true
+        leadData:
+          name: "Marco"
+          phone: "3331234567"
+          sintomi: "mal di schiena"
+          durata: "3 giorni"
+          urgenza: "media"
+          disponibilita: "domani pomeriggio"
+        sessionId: "550e8400-e29b-41d4-a716-446655440000"
+        timestamp: "2024-01-15T10:04:00Z"
+
+  /api/lead:
+    - id: successful_capture
+      description: Successful lead capture
+      input:
+        name: "Marco Rossi"
+        phone: "+393331234567"
+        email: "marco@example.com"
+        sintomi: "Mal di schiena lombare"
+        durata: "3 giorni"
+        urgenza: "media"
+        disponibilita: "Lun-Ven dopo le 18:00"
+        notes: "Preferisce trattamenti manuali"
+        source: "chatbot"
+        sessionId: "550e8400-e29b-41d4-a716-446655440000"
+      output:
+        success: true
+        pazienteId: "550e8400-e29b-41d4-a716-446655440001"
+        message: "Grazie! La contatteremo presto per confermare l'appuntamento."
+        nextSteps:
+          - "Verifica dati paziente"
+          - "Assegnazione al professionista"
+          - "Contatto telefonico"
+          - "Conferma appuntamento"
+        estimatedResponseTime: "Entro 2 ore lavorative"
+
+  /api/webhook/n8n:
+    - id: patient_qualified
+      description: Patient qualified event
+      input:
+        event: "paziente.qualified"
+        data:
+          pazienteId: "550e8400-e29b-41d4-a716-446655440001"
+          name: "Marco Rossi"
+          phone: "+393331234567"
+          urgenza: "media"
+          assignedTo: "Dr. Bianchi"
+        timestamp: "2024-01-15T10:05:00Z"
+        webhookId: "550e8400-e29b-41d4-a716-446655440002"
+      output:
+        received: true
+        processed: true
+        webhookId: "550e8400-e29b-41d4-a716-446655440002"
+
+    - id: notification_sent
+      description: Notification sent event
+      input:
+        event: "notification.sent"
+        data:
+          pazienteId: "550e8400-e29b-41d4-a716-446655440001"
+          channel: "whatsapp"
+          messageType: "confirmation"
+          delivered: true
+        timestamp: "2024-01-15T10:06:00Z"
+        webhookId: "550e8400-e29b-41d4-a716-446655440003"
+      output:
+        received: true
+        processed: true
+        webhookId: "550e8400-e29b-41d4-a716-446655440003"
+
+# ============================================================================
+# ERROR CODES
+# ============================================================================
+error_codes:
+  VALIDATION_ERROR:
+    code: "VALIDATION_ERROR"
+    http_status: 400
+    description: Request data failed validation
+  RATE_LIMIT_EXCEEDED:
+    code: "RATE_LIMIT_EXCEEDED"
+    http_status: 429
+    description: Too many requests
+  UNAUTHORIZED:
+    code: "UNAUTHORIZED"
+    http_status: 401
+    description: Authentication required or failed
+  FORBIDDEN:
+    code: "FORBIDDEN"
+    http_status: 403
+    description: Insufficient permissions
+  NOT_FOUND:
+    code: "NOT_FOUND"
+    http_status: 404
+    description: Resource not found
+  DUPLICATE_LEAD:
+    code: "DUPLICATE_LEAD"
+    http_status: 409
+    description: Lead with same phone/email already exists
+  INTERNAL_ERROR:
+    code: "INTERNAL_ERROR"
+    http_status: 500
+    description: Internal server error
+
+# ============================================================================
+# EXTENSIBILITY NOTES
+# ============================================================================
+extensibility:
+  lead_fields:
+    description: Additional lead fields can be added to the LeadData interface
+    pattern: "Add new optional fields to LeadData with proper TypeScript types"
+    backward_compatibility: "All new fields should be optional"
+  
+  webhook_events:
+    description: New webhook event types can be added
+    pattern: "Extend N8NWebhookEventType enum with new event names"
+    naming_convention: "use dot notation: domain.action (e.g., 'appointment.rescheduled')"
+  
+  chat_actions:
+    description: New action types for chat responses
+    pattern: "Extend ChatAction type enum and implement handler in frontend"
+  
+  response_metadata:
+    description: Additional metadata can be added to responses
+    pattern: "Use Record<string, unknown> for flexible extension points"
