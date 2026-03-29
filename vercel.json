@@ -20,8 +20,8 @@
     }
   ],
   "env": {
-    "OPENAI_API_KEY": "@openai-api-key",
-    "N8N_WEBHOOK_URL": "@n8n-webhook-url",
-    "N8N_WEBHOOK_SECRET": "@n8n-webhook-secret"
+    "OPENAI_API_KEY": "@openai_api_key",
+    "N8N_WEBHOOK_URL": "@n8n_webhook_url",
+    "N8N_WEBHOOK_SECRET": "@n8n_webhook_secret"
   }
 }
