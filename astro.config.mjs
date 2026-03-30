@@ -1,14 +1,15 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
+import node from '@astrojs/node';
 
 export default defineConfig({
   integrations: [react()],
-  output: 'hybrid',
-  adapter: undefined, // Static per demo
+  output: 'server',
+  adapter: node({
+    mode: 'standalone'
+  }),
   server: {
-    port: 3000,
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    }
+    port: process.env.PORT || 3000,
+    host: true
   }
 });
