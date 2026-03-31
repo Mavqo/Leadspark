@@ -1,6 +1,4 @@
 ---
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Activity, HeartPulse, Hand, ArrowRight } from "lucide-react";
 
 const services = [
@@ -76,7 +74,7 @@ const colorClasses: Record<string, { bg: string; text: string; border: string; g
         const Icon = service.icon;
         
         return (
-          <Card className="group card-hover bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div class="group card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden rounded-lg">
             {/* Image Header */}
             <div class="relative h-48 overflow-hidden">
               <img 
@@ -94,16 +92,16 @@ const colorClasses: Record<string, { bg: string; text: string; border: string; g
               
               {/* Title Overlay */}
               <div class="absolute bottom-4 left-4 right-4">
-                <CardTitle className="text-xl text-white font-bold">
+                <h3 class="text-xl text-white font-bold">
                   {service.title}
-                </CardTitle>
+                </h3>
               </div>
             </div>
 
-            <CardContent className="p-6">
-              <CardDescription className="text-slate-600 dark:text-slate-300 text-base leading-relaxed mb-4">
+            <div class="p-6">
+              <p class="text-slate-600 dark:text-slate-300 text-base leading-relaxed mb-4">
                 {service.description}
-              </CardDescription>
+              </p>
 
               {/* Features List */}
               <ul class="space-y-2 mb-6">
@@ -117,16 +115,15 @@ const colorClasses: Record<string, { bg: string; text: string; border: string; g
 
               {/* CTA Button */}
               <a href="#contact">
-                <Button 
-                  variant="ghost" 
-                  className={`w-full group/btn ${colors.text} hover:${colors.bg}`}
+                <button 
+                  class={`w-full group/btn flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-colors ${colors.text} hover:${colors.bg}`}
                 >
                   Scopri di più
                   <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                </Button>
+                </button>
               </a>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         );
       })}
     </div>
@@ -139,10 +136,10 @@ const colorClasses: Record<string, { bg: string; text: string; border: string; g
           <p class="text-sm text-slate-600 dark:text-slate-400">Prenota una consulenza gratuita</p>
         </div>
         <a href="#contact">
-          <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-full px-6">
+          <button class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white rounded-full px-6 py-2 font-medium transition-colors">
             Contattaci ora
             <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          </button>
         </a>
       </div>
     </div>

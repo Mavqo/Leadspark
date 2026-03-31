@@ -1,8 +1,4 @@
 ---
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Phone, Mail, MapPin, Clock, Send, Calendar, CheckCircle } from "lucide-react";
 
 const contactInfo = [
@@ -56,14 +52,14 @@ const contactInfo = [
     <div class="grid lg:grid-cols-5 gap-8 lg:gap-12">
       <!-- Contact Form -->
       <div class="lg:col-span-3">
-        <Card className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-lg">
-          <CardHeader className="pb-6">
-            <CardTitle className="text-xl text-slate-900 dark:text-white flex items-center gap-2">
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg rounded-xl">
+          <div class="p-6 pb-6 border-b border-slate-200 dark:border-slate-700">
+            <h3 class="text-xl text-slate-900 dark:text-white flex items-center gap-2 font-semibold">
               <Send className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               Richiedi informazioni
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </h3>
+          </div>
+          <div class="p-6">
             <form class="space-y-6" action="#" method="POST">
               <!-- Name & Email Row -->
               <div class="grid sm:grid-cols-2 gap-4">
@@ -71,26 +67,26 @@ const contactInfo = [
                   <label for="name" class="form-label">
                     Nome completo <span class="text-red-500">*</span>
                   </label>
-                  <Input 
+                  <input 
                     id="name"
                     name="name"
                     type="text"
                     placeholder="Mario Rossi"
                     required
-                    className="form-input"
+                    class="form-input"
                   />
                 </div>
                 <div class="space-y-2">
                   <label for="email" class="form-label">
                     Email <span class="text-red-500">*</span>
                   </label>
-                  <Input 
+                  <input 
                     id="email"
                     name="email"
                     type="email"
                     placeholder="mario@email.it"
                     required
-                    className="form-input"
+                    class="form-input"
                   />
                 </div>
               </div>
@@ -98,12 +94,12 @@ const contactInfo = [
               <!-- Phone -->
               <div class="space-y-2">
                 <label for="phone" class="form-label">Telefono</label>
-                <Input 
+                <input 
                   id="phone"
                   name="phone"
                   type="tel"
                   placeholder="+39 333 123 4567"
-                  className="form-input"
+                  class="form-input"
                 />
               </div>
 
@@ -124,14 +120,14 @@ const contactInfo = [
                 <label for="message" class="form-label">
                   Messaggio <span class="text-red-500">*</span>
                 </label>
-                <Textarea 
+                <textarea 
                   id="message"
                   name="message"
                   placeholder="Descrivi il tuo problema o richiesta..."
                   required
-                  rows={4}
-                  className="form-input resize-none"
-                />
+                  rows="4"
+                  class="form-input resize-none"
+                ></textarea>
               </div>
 
               <!-- Privacy Checkbox -->
@@ -151,21 +147,20 @@ const contactInfo = [
               </div>
 
               <!-- Submit Button -->
-              <Button 
+              <button 
                 type="submit"
-                size="lg"
-                className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white btn-shine"
+                class="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white btn-shine py-3 px-6 rounded-lg font-medium text-base flex items-center justify-center gap-2 transition-colors"
               >
                 Invia richiesta
-                <Send className="ml-2 h-4 w-4" />
-              </Button>
+                <Send className="h-4 w-4" />
+              </button>
 
               <p class="text-xs text-slate-500 dark:text-slate-400 text-center">
                 Risponderemo alla tua richiesta entro 24 ore lavorative.
               </p>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       <!-- Contact Info & Map -->
@@ -193,8 +188,8 @@ const contactInfo = [
         </div>
 
         <!-- Quick CTA -->
-        <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700 text-white border-0">
-          <CardContent className="p-6">
+        <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700 text-white border-0 rounded-xl overflow-hidden">
+          <div class="p-6">
             <div class="flex items-center gap-3 mb-3">
               <Calendar className="w-6 h-6" />
               <h3 class="font-semibold text-lg">Prenota ora</h3>
@@ -203,16 +198,15 @@ const contactInfo = [
               Richiedi una consulenza gratuita di 15 minuti per valutare insieme il tuo percorso terapeutico.
             </p>
             <a href="tel:+390212345678">
-              <Button 
-                variant="secondary" 
-                className="w-full bg-white text-emerald-600 hover:bg-emerald-50"
+              <button 
+                class="w-full bg-white text-emerald-600 hover:bg-emerald-50 py-2.5 px-4 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors"
               >
-                <Phone className="mr-2 h-4 w-4" />
+                <Phone className="h-4 w-4" />
                 Chiama ora
-              </Button>
+              </button>
             </a>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <!-- Map Placeholder -->
         <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">

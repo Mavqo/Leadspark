@@ -1,5 +1,4 @@
 ---
-import { Card, CardContent } from "@/components/ui/card";
 import { Star, Quote } from "lucide-react";
 
 const testimonials = [
@@ -50,13 +49,13 @@ const testimonials = [
     {/* Testimonials Grid */}
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
       {testimonials.map((testimonial, index) => (
-        <Card className="group card-hover bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 relative">
+        <div class="group card-hover bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm relative">
           {/* Quote Icon */}
           <div class="absolute -top-4 left-6 w-8 h-8 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center shadow-lg">
             <Quote className="w-4 h-4 text-white" />
           </div>
 
-          <CardContent className="p-6 pt-8">
+          <div class="p-6 pt-8">
             {/* Rating */}
             <div class="flex gap-1 mb-4">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -91,8 +90,8 @@ const testimonials = [
                 <p class="text-sm text-slate-500 dark:text-slate-400">{testimonial.role}</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
     </div>
 
