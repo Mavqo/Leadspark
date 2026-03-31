@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
-import { MessageCircle, X, Minimize2 } from 'lucide-react';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { useChat } from './hooks/useChat';
@@ -96,7 +95,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ className = '' }) => {
           className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 ${className}`}
           aria-label="Apri chat"
         >
-          <MessageCircle className="w-6 h-6" />
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           {/* Badge per nuovi messaggi */}
           {!hasMessages && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
@@ -130,7 +129,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ className = '' }) => {
           <div className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <MessageCircle className="w-5 h-5" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               </div>
               <div>
                 <h3 className="font-semibold text-sm">Assistente Centro Movimento</h3>
@@ -146,14 +145,14 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ className = '' }) => {
                 className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
                 aria-label="Minimizza chat"
               >
-                <Minimize2 className="w-4 h-4" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
               </button>
               <button
                 onClick={closeChat}
                 className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
                 aria-label="Chiudi chat"
               >
-                <X className="w-4 h-4" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
           </div>
@@ -172,7 +171,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ className = '' }) => {
                 {state.isLoading && (
                   <div className="flex gap-3 mb-4 flex-row">
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                      <MessageCircle className="w-4 h-4" />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     </div>
                     <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3">
                       <div className="flex gap-1">
@@ -187,7 +186,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ className = '' }) => {
               </>
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                <MessageCircle className="w-12 h-12 mb-3 opacity-50" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 mb-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <p className="text-sm">Inizia una conversazione</p>
               </div>
             )}
