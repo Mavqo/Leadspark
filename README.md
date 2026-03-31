@@ -76,3 +76,4 @@ npm run test:coverage # Coverage report
 ## 📄 License
 
 MIT - Creato per portfolio demo.
+# Cache invalidation
