@@ -1,6 +1,4 @@
 ---
-import "../styles/globals.css";
-
 export interface Props {
   title: string;
   description?: string;
@@ -45,6 +43,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://centrofi
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="/styles.css" />
     
     <!-- Preconnect to Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
