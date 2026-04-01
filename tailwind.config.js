@@ -2,9 +2,6 @@
 export default {
   content: [
     './src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}',
-    './src/components/**/*.{js,ts,jsx,tsx,astro}',
-    './src/pages/**/*.{js,ts,jsx,tsx,astro}',
-    './src/layouts/**/*.{js,ts,jsx,tsx,astro}',
   ],
   darkMode: 'class',
   theme: {

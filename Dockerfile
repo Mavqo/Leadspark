@@ -4,19 +4,19 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Install dependencies for native modules
-RUN apk add --no-cache python3 make g++
-
 # Copy package files
 COPY package*.json ./
-COPY postcss.config.js ./
 COPY tailwind.config.js ./
+COPY postcss.config.js ./
 
 # Install dependencies
 RUN npm install
 
 # Copy source code
 COPY . .
+
+# Build Tailwind CSS first
+RUN npx tailwindcss -i ./src/styles/globals.css -o ./public/styles.css --minify
 
 # Build the application
 RUN npm run build
@@ -28,6 +28,7 @@ WORKDIR /app
 # Copy built files
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/public/styles.css ./public/styles.css
 
 # Install only production dependencies
 RUN npm install --omit=dev
