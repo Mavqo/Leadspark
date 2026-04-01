@@ -4,8 +4,15 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
+# Install dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
 # Copy package files
 COPY package*.json ./
+COPY postcss.config.js ./
+COPY tailwind.config.js ./
+
+# Install dependencies
 RUN npm install
 
 # Copy source code
