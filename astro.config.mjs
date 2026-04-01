@@ -14,4 +14,9 @@ export default defineConfig({
     port: process.env.PORT || 3000,
     host: true
   },
+  vite: {
+    css: {
+      postcss: './postcss.config.js',
+    },
+  },
 });
