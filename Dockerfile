@@ -21,6 +21,9 @@ RUN npx tailwindcss -i ./src/styles/globals.css -o ./public/styles.css --minify
 # Build the application
 RUN npm run build
 
+# Copy styles.css to dist folder
+RUN cp ./public/styles.css ./dist/client/styles.css
+
 # Production stage
 FROM node:18-alpine
 WORKDIR /app
@@ -28,7 +31,6 @@ WORKDIR /app
 # Copy built files
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/public/styles.css ./public/styles.css
 
 # Install only production dependencies
 RUN npm install --omit=dev
