@@ -210,5 +210,7 @@ function getFallbackResponse(step: ChatContext['step']): string {
 }
 
 export function generateSessionId(): string {
-  return `sess_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+  // SECURITY FIX: Use crypto.randomUUID() instead of Math.random()
+  // for cryptographically secure session ID generation
+  return `sess_${Date.now()}_${crypto.randomUUID()}`;
 }

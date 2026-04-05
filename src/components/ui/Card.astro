@@ -1,0 +1,63 @@
+---
+export interface Props {
+  variant?: 'default' | 'outline' | 'ghost' | 'gradient';
+  hover?: boolean;
+  clickable?: boolean;
+  href?: string;
+  class?: string;
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+}
+
+const {
+  variant = 'default',
+  hover = true,
+  clickable = false,
+  href,
+  class: className = '',
+  padding = 'md',
+} = Astro.props;
+
+const baseClasses = 'relative overflow-hidden';
+
+const variantClasses = {
+  default: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm',
+  outline: 'bg-transparent border border-slate-200 dark:border-slate-700 rounded-xl',
+  ghost: 'bg-slate-50 dark:bg-slate-800/50 rounded-xl',
+  gradient: 'bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 text-white rounded-xl',
+};
+
+const paddingClasses = {
+  none: '',
+  sm: 'p-4',
+  md: 'p-6',
+  lg: 'p-8',
+};
+
+const hoverClasses = hover && variant !== 'gradient'
+  ? 'transition-all duration-300 hover:-translate-y-1 hover:shadow-xl'
+  : '';
+
+const clickableClasses = clickable || href
+  ? 'cursor-pointer'
+  : '';
+
+const computedClasses = [
+  baseClasses,
+  variantClasses[variant],
+  paddingClasses[padding],
+  hoverClasses,
+  clickableClasses,
+  className,
+].join(' ');
+
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag {...href ? { href } : {}} class={computedClasses}>
+  <slot name="header" />
+  <slot name="media" />
+  <div class={padding === 'none' ? '' : ''}>
+    <slot />
+  </div>
+  <slot name="footer" />
+</Tag>

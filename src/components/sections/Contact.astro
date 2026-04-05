@@ -40,15 +40,15 @@ const icons = {
 <section id="contact" class="section-padding bg-white dark:bg-slate-900">
   <div class="max-w-7xl mx-auto container-padding">
     <!-- Section Header -->
-    <div class="text-center max-w-3xl mx-auto mb-16">
-      <span class="inline-block px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium mb-4">
+    <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+      <span class="inline-block px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-semibold mb-4">
         Contattaci
       </span>
       <h2 class="text-slate-900 dark:text-white mb-6">
         Prenota la tua visita
         <span class="text-gradient"> oggi stesso</span>
       </h2>
-      <p class="text-lg text-slate-600 dark:text-slate-300">
+      <p class="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
         Siamo qui per aiutarti. Compila il form per richiedere una consulenza gratuita 
         o contattaci direttamente per una risposta immediata.
       </p>
@@ -56,16 +56,16 @@ const icons = {
 
     <div class="grid lg:grid-cols-5 gap-8 lg:gap-12">
       <!-- Contact Form -->
-      <div class="lg:col-span-3">
-        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg rounded-xl">
-          <div class="p-6 pb-6 border-b border-slate-200 dark:border-slate-700">
-            <h3 class="text-xl text-slate-900 dark:text-white flex items-center gap-2 font-semibold">
+      <div class="lg:col-span-3 reveal">
+        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-2xl overflow-hidden">
+          <div class="p-6 pb-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+            <h3 class="text-xl text-slate-900 dark:text-white flex items-center gap-2 font-bold">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-blue-600 dark:text-blue-400"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
               Richiedi informazioni
             </h3>
           </div>
           <div class="p-6">
-            <form class="space-y-6" action="#" method="POST">
+            <form id="contact-form" class="space-y-6" action="#" method="POST">
               <!-- Name & Email Row -->
               <div class="grid sm:grid-cols-2 gap-4">
                 <div class="space-y-2">
@@ -111,7 +111,7 @@ const icons = {
               <!-- Service Selection -->
               <div class="space-y-2">
                 <label for="service" class="form-label">Servizio di interesse</label>
-                <select id="service" name="service" class="form-input">
+                <select id="service" name="service" class="form-input cursor-pointer">
                   <option value="">Seleziona un servizio...</option>
                   <option value="sportiva">Fisioterapia Sportiva</option>
                   <option value="post-operatoria">Riabilitazione Post-operatoria</option>
@@ -142,11 +142,11 @@ const icons = {
                   id="privacy" 
                   name="privacy"
                   required
-                  class="mt-1 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  class="mt-1 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
                 />
                 <label for="privacy" class="text-sm text-slate-600 dark:text-slate-400">
                   Ho letto e accetto la 
-                  <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline">Privacy Policy</a>
+                  <a href="#" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">Privacy Policy</a>
                   e autorizzo il trattamento dei miei dati personali.
                 </label>
               </div>
@@ -154,10 +154,15 @@ const icons = {
               <!-- Submit Button -->
               <button 
                 type="submit"
-                class="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white btn-shine py-3 px-6 rounded-lg font-medium text-base flex items-center justify-center gap-2 transition-colors"
+                id="submit-btn"
+                class="w-full btn-shine btn-ripple bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white py-4 px-6 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0"
               >
-                Invia richiesta
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+                <span id="btn-text">Invia richiesta</span>
+                <svg id="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 transition-transform duration-300"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>
+                <svg id="btn-spinner" class="hidden w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
               </button>
 
               <p class="text-xs text-slate-500 dark:text-slate-400 text-center">
@@ -169,39 +174,42 @@ const icons = {
       </div>
 
       <!-- Contact Info & Map -->
-      <div class="lg:col-span-2 space-y-6">
+      <div class="lg:col-span-2 space-y-6 reveal" style="animation-delay: 0.1s;">
         <!-- Contact Cards -->
-        <div class="grid sm:grid-cols-2 lg:grid-cols-1 gap-4">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-1 gap-4 stagger-children">
           {contactInfo.map((info) => (
             <a 
               href={info.href}
-              class="group flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300"
+              class="group flex items-start gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 hover:-translate-y-1"
             >
-              <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600 dark:group-hover:bg-blue-500 transition-colors">
-                <Fragment set:html={icons[info.icon]} class="text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors" />
+              <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600 dark:group-hover:bg-blue-500 group-hover:scale-110 transition-all duration-300">
+                <Fragment set:html={icons[info.icon]} class="text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors duration-300" />
               </div>
               <div>
-                <p class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{info.label}</p>
-                <p class="font-semibold text-slate-900 dark:text-white">{info.value}</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold mb-1">{info.label}</p>
+                <p class="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">{info.value}</p>
                 <p class="text-sm text-slate-500 dark:text-slate-400">{info.description}</p>
               </div>
             </a>
           ))}
         </div>
 
-        <!-- Quick CTA -->
-        <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700 text-white border-0 rounded-xl overflow-hidden">
-          <div class="p-6">
-            <div class="flex items-center gap-3 mb-3">
+        {/* Quick CTA */}
+        <div class="bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 dark:from-emerald-600 dark:via-emerald-700 dark:to-emerald-800 text-white border-0 rounded-2xl overflow-hidden shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-shadow duration-300">
+          <div class="p-6 relative overflow-hidden">
+            {/* Decorative circle */}
+            <div class="absolute -top-8 -right-8 w-32 h-32 bg-white/10 rounded-full"></div>
+            
+            <div class="flex items-center gap-3 mb-3 relative">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
-              <h3 class="font-semibold text-lg">Prenota ora</h3>
+              <h3 class="font-bold text-lg">Prenota ora</h3>
             </div>
-            <p class="text-emerald-100 text-sm mb-4">
+            <p class="text-emerald-100 text-sm mb-4 relative">
               Richiedi una consulenza gratuita di 15 minuti per valutare insieme il tuo percorso terapeutico.
             </p>
             <a href="tel:+390212345678">
               <button 
-                class="w-full bg-white text-emerald-600 hover:bg-emerald-50 py-2.5 px-4 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors"
+                class="w-full bg-white text-emerald-600 hover:bg-emerald-50 py-3 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                 Chiama ora
@@ -210,18 +218,18 @@ const icons = {
           </div>
         </div>
 
-        <!-- Map Placeholder -->
-        <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
-          <div class="relative h-48 bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-            <div class="text-center">
+        {/* Map Placeholder */}
+        <div class="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-sm hover:shadow-md transition-shadow duration-300">
+          <div class="relative h-48 bg-gradient-to-br from-slate-200 via-slate-300 to-slate-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 flex items-center justify-center">
+            <div class="text-center relative z-10">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-slate-400 mx-auto mb-2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-              <p class="text-slate-500 dark:text-slate-400 text-sm">Mappa interattiva</p>
-              <p class="text-slate-400 dark:text-slate-500 text-xs">Via Roma 123, Milano</p>
+              <p class="text-slate-600 dark:text-slate-300 text-sm font-medium">Mappa interattiva</p>
+              <p class="text-slate-500 dark:text-slate-400 text-xs">Via Roma 123, Milano</p>
             </div>
             <div class="absolute inset-0 bg-gradient-to-br from-slate-200 via-slate-300 to-slate-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 opacity-50"></div>
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <div class="w-4 h-4 bg-blue-600 rounded-full animate-ping absolute"></div>
-              <div class="w-4 h-4 bg-blue-600 rounded-full relative border-2 border-white"></div>
+              <div class="w-4 h-4 bg-blue-600 rounded-full relative border-2 border-white dark:border-slate-800"></div>
             </div>
           </div>
           <div class="p-4 bg-white dark:bg-slate-800">
@@ -229,19 +237,19 @@ const icons = {
               href="https://maps.google.com" 
               target="_blank" 
               rel="noopener noreferrer"
-              class="flex items-center justify-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              class="flex items-center justify-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold transition-colors duration-200 group"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
               Apri in Google Maps
             </a>
           </div>
         </div>
 
-        <!-- Success Guarantee -->
-        <div class="flex items-center gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-emerald-500 flex-shrink-0"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
+        {/* Success Guarantee */}
+        <div class="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-800 transition-colors duration-300">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-emerald-500 flex-shrink-0"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
           <div>
-            <p class="font-medium text-slate-900 dark:text-white">Prima visita gratuita</p>
+            <p class="font-bold text-slate-900 dark:text-white">Prima visita gratuita</p>
             <p class="text-sm text-slate-500 dark:text-slate-400">Valutazione senza impegno</p>
           </div>
         </div>
@@ -249,3 +257,77 @@ const icons = {
     </div>
   </div>
 </section>
+
+<script>
+  // Form submission handler with loading state
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+  const btnText = document.getElementById('btn-text');
+  const btnIcon = document.getElementById('btn-icon');
+  const btnSpinner = document.getElementById('btn-spinner');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    btnText?.classList.add('hidden');
+    btnIcon?.classList.add('hidden');
+    btnSpinner?.classList.remove('hidden');
+    submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+    
+    // Simulate API call (replace with actual implementation)
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Reset form and button
+    form.reset();
+    submitBtn.disabled = false;
+    btnText?.classList.remove('hidden');
+    btnIcon?.classList.remove('hidden');
+    btnSpinner?.classList.add('hidden');
+    submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+    
+    // Show success message (you can replace this with a toast notification)
+    alert('Grazie per la tua richiesta! Ti contatteremo presto.');
+  });
+</script>
+
+<style>
+  /* Contact info cards animation */
+  .stagger-children > * {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  
+  .stagger-children.visible > *:nth-child(1) {
+    animation: slideUpCard 0.5s var(--ease-out-expo) 0ms forwards;
+  }
+  
+  .stagger-children.visible > *:nth-child(2) {
+    animation: slideUpCard 0.5s var(--ease-out-expo) 0.08s forwards;
+  }
+  
+  .stagger-children.visible > *:nth-child(3) {
+    animation: slideUpCard 0.5s var(--ease-out-expo) 0.16s forwards;
+  }
+  
+  .stagger-children.visible > *:nth-child(4) {
+    animation: slideUpCard 0.5s var(--ease-out-expo) 0.24s forwards;
+  }
+  
+  @keyframes slideUpCard {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Form input focus animation */
+  .form-input:focus {
+    transform: translateY(-1px);
+  }
+</style>

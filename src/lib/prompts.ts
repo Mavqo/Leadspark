@@ -1,5 +1,9 @@
 import type { ChatContext, ChatStep } from '../types/paziente';
 
+/**
+ * System prompt for the AI assistant "Emma"
+ * Defines the personality, role, and conversation flow
+ */
 export const SYSTEM_PROMPT = `Sei Emma, l'assistente virtuale del Centro Fisioterapia Movimento.
 
 IL TUO RUOLO:
@@ -37,36 +41,11 @@ ESEMPI DI RISPOSTA:
 - "Grazie per queste informazioni. Ora, per aiutarti al meglio, preferiresti un appuntamento nelle prossime 48 ore o hai più flessibilità?"
 - "Perfetto! Ho raccolto tutte le informazioni. Un nostro operatore ti ricontatterà entro 24 ore per fissare la visita."`;
 
-export function buildConversationPrompt(context: ChatContext): string {
-  const { step, collectedData, history } = context;
-  
-  let prompt = SYSTEM_PROMPT + '\n\n';
-  
-  // Aggiungi contesto della conversazione
-  if (history.length > 0) {
-    prompt += 'STORIA DELLA CONVERSAZIONE:\n';
-    history.slice(-6).forEach(msg => {
-      prompt += `${msg.role === 'user' ? 'Paziente' : 'Emma'}: ${msg.content}\n`;
-    });
-    prompt += '\n';
-  }
-  
-  // Aggiungi dati già raccolti
-  const collectedFields = Object.entries(collectedData)
-    .filter(([_, value]) => value !== undefined && value !== '')
-    .map(([key, value]) => `${key}: ${value}`);
-  
-  if (collectedFields.length > 0) {
-    prompt += 'DATI GIÀ RACCOLTI:\n' + collectedFields.join('\n') + '\n\n';
-  }
-  
-  // Aggiungi istruzione sullo step corrente
-  prompt += `STEP ATTUALE: ${step}\n`;
-  prompt += getStepInstruction(step);
-  
-  return prompt;
-}
-
+/**
+ * Gets the instruction text for a specific conversation step
+ * @param step - Current chat step
+ * @returns Instruction string for the AI
+ */
 function getStepInstruction(step: ChatStep): string {
   const instructions: Record<ChatStep, string> = {
     greeting: 'Saluta il paziente, presentati come Emma del Centro Fisioterapia Movimento e chiedi gentilmente cosa li ha portati a contattarci.',
@@ -81,6 +60,47 @@ function getStepInstruction(step: ChatStep): string {
   return instructions[step] || '';
 }
 
+/**
+ * Builds the complete conversation prompt for the AI
+ * Includes system prompt, conversation history, collected data, and current step instruction
+ * 
+ * @param context - Current chat context
+ * @returns Complete prompt string for the AI
+ */
+export function buildConversationPrompt(context: ChatContext): string {
+  const { step, collectedData, history } = context;
+  
+  let prompt = SYSTEM_PROMPT + '\n\n';
+  
+  // Add conversation history (last 6 messages for context window management)
+  if (history.length > 0) {
+    prompt += 'STORIA DELLA CONVERSAZIONE:\n';
+    history.slice(-6).forEach(msg => {
+      prompt += `${msg.role === 'user' ? 'Paziente' : 'Emma'}: ${msg.content}\n`;
+    });
+    prompt += '\n';
+  }
+  
+  // Add already collected data
+  const collectedFields = Object.entries(collectedData)
+    .filter(([, value]) => value !== undefined && value !== '')
+    .map(([key, value]) => `${key}: ${value}`);
+  
+  if (collectedFields.length > 0) {
+    prompt += 'DATI GIÀ RACCOLTI:\n' + collectedFields.join('\n') + '\n\n';
+  }
+  
+  // Add current step instruction
+  prompt += `STEP ATTUALE: ${step}\n`;
+  prompt += getStepInstruction(step);
+  
+  return prompt;
+}
+
+/**
+ * Prompt for extracting structured lead data from conversation
+ * Used to parse conversation and extract patient information
+ */
 export const EXTRACTION_PROMPT = `Estrai le seguenti informazioni dalla conversazione con il paziente.
 Restituisci SOLO un oggetto JSON valido con questi campi (usa stringa vuota o null se non presente):
 
@@ -100,6 +120,12 @@ Regola per urgenza:
 - "media": disagio moderato, dolori persistenti ma gestibili
 - "bassa": controllo di routine, miglioramento già in corso, solo informazioni`;
 
+/**
+ * Builds the extraction prompt with conversation context
+ * 
+ * @param conversation - Full conversation text
+ * @returns Extraction prompt with conversation
+ */
 export function buildExtractionPrompt(conversation: string): string {
   return `${EXTRACTION_PROMPT}\n\nCONVERSAZIONE:\n${conversation}`;
 }

@@ -1,0 +1,54 @@
+---
+export interface Props {
+  id?: string;
+  class?: string;
+  background?: 'white' | 'light' | 'dark' | 'gradient' | 'transparent';
+  spacing?: 'sm' | 'md' | 'lg' | 'xl';
+  container?: boolean;
+  containerClass?: string;
+}
+
+const {
+  id,
+  class: className = '',
+  background = 'white',
+  spacing = 'lg',
+  container = true,
+  containerClass = '',
+} = Astro.props;
+
+const backgroundClasses = {
+  white: 'bg-white dark:bg-slate-900',
+  light: 'bg-slate-50 dark:bg-slate-800/50',
+  dark: 'bg-slate-900 dark:bg-slate-950 text-white',
+  gradient: 'bg-gradient-to-br from-blue-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900',
+  transparent: 'bg-transparent',
+};
+
+const spacingClasses = {
+  sm: 'py-8 md:py-12',
+  md: 'py-12 md:py-16 lg:py-20',
+  lg: 'py-16 md:py-24 lg:py-32',
+  xl: 'py-20 md:py-32 lg:py-40',
+};
+
+const sectionClasses = [
+  backgroundClasses[background],
+  spacingClasses[spacing],
+  className,
+].join(' ');
+
+const containerClasses = container
+  ? `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 ${containerClass}`
+  : containerClass;
+---
+
+<section {id} class={sectionClasses}>
+  {container ? (
+    <div class={containerClasses}>
+      <slot />
+    </div>
+  ) : (
+    <slot />
+  )}
+</section>

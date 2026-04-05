@@ -1,12 +1,121 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
+import { ChatHeader } from './ChatHeader';
+import { LoadingIndicator } from './LoadingIndicator';
+import { EmptyState } from './EmptyState';
+import { ToggleButton } from './ToggleButton';
 import { useChat } from './hooks/useChat';
+import type { ChatWidgetProps } from './types';
+import { TIMING, UI } from './constants';
 
-interface ChatWidgetProps {
-  className?: string;
-}
+/**
+ * MobileOverlay component - Backdrop for mobile chat view
+ */
+const MobileOverlay: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({ onClick }) => (
+  <div 
+    className="fixed inset-0 bg-black/30 z-40 sm:hidden transition-opacity duration-300"
+    onClick={onClick}
+    aria-hidden="true"
+  />
+);
 
+/**
+ * ChatMessages component - Renders the list of messages with live region for screen readers
+ */
+const ChatMessages: React.FC<{
+  messages: Array<{ id: string; role: 'user' | 'bot'; content: string; timestamp?: Date }>;
+  isLoading: boolean;
+  messagesEndRef: React.RefObject<HTMLDivElement>;
+  hasMessages: boolean;
+}> = ({ messages, isLoading, messagesEndRef, hasMessages }) => {
+  if (!hasMessages) {
+    return <EmptyState />;
+  }
+
+  return (
+    <>
+      {messages.map((message) => (
+        <ChatMessage key={message.id} message={message} />
+      ))}
+      {isLoading && <LoadingIndicator />}
+      <div ref={messagesEndRef} />
+    </>
+  );
+};
+
+/**
+ * Custom hook to trap focus within the chat widget for accessibility
+ */
+const useFocusTrap = (isActive: boolean, containerRef: React.RefObject<HTMLElement>) => {
+  const previouslyFocusedElement = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (isActive && containerRef.current) {
+      // Store the previously focused element
+      previouslyFocusedElement.current = document.activeElement as HTMLElement;
+      
+      // Find all focusable elements within the container
+      const getFocusableElements = () => {
+        const container = containerRef.current;
+        if (!container) return [];
+        
+        return Array.from(
+          container.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter(el => !el.hasAttribute('disabled') && el.offsetParent !== null);
+      };
+
+      const focusableElements = getFocusableElements();
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      // Focus the first element
+      firstElement?.focus();
+
+      const handleTabKey = (e: KeyboardEvent) => {
+        if (e.key !== 'Tab') return;
+
+        const currentElements = getFocusableElements();
+        const currentFirst = currentElements[0];
+        const currentLast = currentElements[currentElements.length - 1];
+
+        if (e.shiftKey) {
+          // Shift + Tab
+          if (document.activeElement === currentFirst) {
+            e.preventDefault();
+            currentLast?.focus();
+          }
+        } else {
+          // Tab
+          if (document.activeElement === currentLast) {
+            e.preventDefault();
+            currentFirst?.focus();
+          }
+        }
+      };
+
+      containerRef.current.addEventListener('keydown', handleTabKey);
+
+      return () => {
+        containerRef.current?.removeEventListener('keydown', handleTabKey);
+        // Restore focus when closing
+        previouslyFocusedElement.current?.focus();
+      };
+    }
+  }, [isActive, containerRef]);
+};
+
+/**
+ * ChatWidget component - Main chat interface
+ * Provides a floating chat button and expandable chat window
+ * 
+ * @example
+ * ```tsx
+ * <ChatWidget className="custom-class" />
+ * ```
+ */
 export const ChatWidget: React.FC<ChatWidgetProps> = ({ className = '' }) => {
   const { 
     state, 
@@ -19,40 +128,64 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ className = '' }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatWindowRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const liveRegionRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [lastMessageId, setLastMessageId] = useState<string | null>(null);
 
-  // Inizializza la chat con il primo messaggio quando si apre per la prima volta
+  const hasMessages = state.messages.length > 0;
+
+  // Initialize chat with first message when opened for the first time
   useEffect(() => {
     if (state.isOpen && state.messages.length === 0) {
       initializeChat();
     }
   }, [state.isOpen, state.messages.length, initializeChat]);
 
-  // Scroll automatico verso l'ultimo messaggio
+  // Auto-scroll to latest message
   useEffect(() => {
     if (state.isOpen && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [state.messages, state.isOpen]);
 
-  // Gestione focus trap per accessibilità
+  // Announce new messages to screen readers
+  useEffect(() => {
+    const lastMessage = state.messages[state.messages.length - 1];
+    if (lastMessage && lastMessage.id !== lastMessageId && liveRegionRef.current) {
+      setLastMessageId(lastMessage.id);
+      const announcement = lastMessage.role === 'bot' 
+        ? `Nuovo messaggio dall'assistente: ${lastMessage.content}`
+        : `Hai inviato: ${lastMessage.content}`;
+      liveRegionRef.current.textContent = announcement;
+      
+      // Clear after announcement
+      setTimeout(() => {
+        if (liveRegionRef.current) {
+          liveRegionRef.current.textContent = '';
+        }
+      }, 1000);
+    }
+  }, [state.messages, lastMessageId]);
+
+  // Handle visibility and focus for accessibility
   useEffect(() => {
     if (state.isOpen) {
       setIsVisible(true);
-      // Focus sul primo elemento interattivo dopo l'apertura
-      setTimeout(() => {
+      // Focus on first interactive element after opening
+      const timer = setTimeout(() => {
         firstInputRef.current?.focus();
-      }, 100);
+      }, TIMING.FOCUS_DELAY);
+      return () => clearTimeout(timer);
     } else {
-      // Delay per permettere l'animazione di chiusura
-      const timer = setTimeout(() => setIsVisible(false), 300);
+      // Delay to allow close animation
+      const timer = setTimeout(() => setIsVisible(false), TIMING.CLOSE_ANIMATION_DURATION);
       return () => clearTimeout(timer);
     }
   }, [state.isOpen]);
 
-  // Gestione tasto ESC per chiudere
+  // Handle ESC key to close
   useEffect(() => {
-    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key === 'Escape' && state.isOpen) {
         closeChat();
       }
@@ -60,7 +193,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ className = '' }) => {
 
     if (state.isOpen) {
       document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden'; // Previeni scroll del body su mobile
+      document.body.style.overflow = 'hidden'; // Prevent body scroll on mobile
     }
 
     return () => {
@@ -69,40 +202,41 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ className = '' }) => {
     };
   }, [state.isOpen, closeChat]);
 
-  // Click outside per chiudere (solo su desktop)
-  const handleOverlayClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget && window.innerWidth >= 640) {
+  // Activate focus trap when chat is open
+  useFocusTrap(state.isOpen, chatWindowRef);
+
+  // Handle click outside to close (desktop only)
+  const handleOverlayClick = useCallback((e: React.MouseEvent): void => {
+    if (e.target === e.currentTarget && window.innerWidth >= UI.MOBILE_BREAKPOINT) {
       closeChat();
     }
   }, [closeChat]);
 
-  const hasMessages = state.messages.length > 0;
+  const visibilityStyle = { 
+    visibility: (isVisible || state.isOpen) ? 'visible' as const : 'hidden' as const 
+  };
 
   return (
     <>
-      {/* Overlay per mobile */}
-      {state.isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/30 z-40 sm:hidden transition-opacity duration-300"
-          onClick={handleOverlayClick}
-        />
-      )}
+      {/* Live region for screen reader announcements */}
+      <div 
+        ref={liveRegionRef}
+        aria-live="polite" 
+        aria-atomic="true"
+        className="sr-only"
+        role="status"
+      />
+
+      {/* Mobile overlay */}
+      {state.isOpen && <MobileOverlay onClick={handleOverlayClick} />}
 
       {/* Floating Button */}
       {!state.isOpen && (
-        <button
-          onClick={toggleChat}
-          className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 ${className}`}
-          aria-label="Apri chat"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          {/* Badge per nuovi messaggi */}
-          {!hasMessages && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
-              1
-            </span>
-          )}
-        </button>
+        <ToggleButton 
+          onClick={toggleChat} 
+          hasMessages={hasMessages}
+          className={className}
+        />
       )}
 
       {/* Chat Window */}
@@ -113,83 +247,39 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({ className = '' }) => {
             ? 'opacity-100 translate-y-0 scale-100'
             : 'opacity-0 translate-y-4 scale-95 pointer-events-none'
         } ${
-          // Mobile: fullscreen
+          // Mobile: fullscreen, Desktop: fixed size
           'inset-0 sm:inset-auto sm:bottom-6 sm:right-6'
         } ${
-          // Desktop: dimensioni fisse
           'sm:w-[380px] sm:h-[550px]'
         }`}
-        style={{ visibility: isVisible || state.isOpen ? 'visible' : 'hidden' }}
+        style={visibilityStyle}
         role="dialog"
         aria-modal="true"
-        aria-label="Chat assistente virtuale"
+        aria-labelledby="chat-title"
+        aria-describedby="chat-description"
       >
         <div className="w-full h-full sm:h-full bg-white sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="bg-blue-600 text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm">Assistente Centro Movimento</h3>
-                <p className="text-xs text-blue-100 flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                  Online
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={toggleChat}
-                className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
-                aria-label="Minimizza chat"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-              </button>
-              <button
-                onClick={closeChat}
-                className="w-8 h-8 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
-                aria-label="Chiudi chat"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-              </button>
-            </div>
-          </div>
+          <ChatHeader 
+            onMinimize={toggleChat} 
+            onClose={closeChat} 
+          />
 
           {/* Messages Area */}
           <div 
             className="flex-1 overflow-y-auto p-4 bg-gray-50"
             ref={firstInputRef}
             tabIndex={-1}
+            role="log"
+            aria-live="polite"
+            aria-label="Messaggi della chat"
           >
-            {hasMessages ? (
-              <>
-                {state.messages.map((message) => (
-                  <ChatMessage key={message.id} message={message} />
-                ))}
-                {state.isLoading && (
-                  <div className="flex gap-3 mb-4 flex-row">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    </div>
-                    <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3">
-                      <div className="flex gap-1">
-                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 mb-3 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <p className="text-sm">Inizia una conversazione</p>
-              </div>
-            )}
+            <ChatMessages
+              messages={state.messages}
+              isLoading={state.isLoading}
+              messagesEndRef={messagesEndRef}
+              hasMessages={hasMessages}
+            />
           </div>
 
           {/* Input Area */}

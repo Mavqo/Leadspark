@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
-import { rateLimiter, createRateLimitResponse } from '../../lib/rate-limiter';
+import { rateLimiter, createRateLimitResponse, RateLimiter } from '../../lib/rate-limiter';
+import { getCorsHeaders, handleCorsPreflight } from '../../lib/cors';
+import { applySecurityHeaders, parseJsonBody, sanitizeHtml } from '../../lib/security';
 import type { Paziente, LeadRequest, LeadResponse, ApiError } from '../../types/paziente';
 
 // Schema validazione strict
@@ -25,6 +27,9 @@ const leadRequestSchema = z.object({
 // In-memory storage per demo
 const leadsStore = new Map<string, Paziente>();
 
+// Add admin rate limiter config (5 requests per minute)
+rateLimiter.setConfig('admin:lead', 60 * 1000, 5);
+
 // Webhook URL (da configurare via env)
 const WEBHOOK_URL = import.meta.env.N8N_WEBHOOK_URL || process.env.N8N_WEBHOOK_URL || '';
 
@@ -37,30 +42,32 @@ if (!WEBHOOK_SECRET) {
 export const POST: APIRoute = async ({ request }) => {
   const startTime = Date.now();
   
+  // Handle CORS preflight
+  const preflight = handleCorsPreflight(request);
+  if (preflight) return applySecurityHeaders(preflight);
+  
   try {
     // 1. Rate limiting per IP
-    const clientIP = rateLimiter.constructor.getClientIP(request);
+    const clientIP = RateLimiter.getClientIP(request);
     const ipLimit = rateLimiter.checkWithHeaders(clientIP, 'lead:ip');
     
     if (!ipLimit.allowed) {
       console.warn(`[Lead API] Rate limit exceeded for IP: ${clientIP}`);
-      return createRateLimitResponse(ipLimit.retryAfter || 60);
+      const response = createRateLimitResponse(ipLimit.retryAfter || 60);
+      return applySecurityHeaders(response);
     }
     
-    // 2. Parse body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      const error: ApiError = {
-        error: 'Invalid JSON body',
-        code: 'INVALID_JSON'
-      };
-      return new Response(
-        JSON.stringify(error),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+    // 2. Parse body with size limit (1MB)
+    const bodyResult = await parseJsonBody(request, 1024 * 1024);
+    if (!bodyResult.success) {
+      return applySecurityHeaders(
+        new Response(
+          JSON.stringify({ error: bodyResult.error, code: bodyResult.code }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        )
       );
     }
+    let body: unknown = bodyResult.data;
     
     // 3. Validazione Zod strict
     const parseResult = leadRequestSchema.safeParse(body);
@@ -82,7 +89,14 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
     
-    const data: LeadRequest = parseResult.data;
+    let data: LeadRequest = parseResult.data;
+    
+    // XSS Prevention: Sanitize text fields
+    data.name = sanitizeHtml(data.name);
+    data.sintomi = sanitizeHtml(data.sintomi);
+    data.durata = sanitizeHtml(data.durata);
+    data.disponibilita = sanitizeHtml(data.disponibilita);
+    if (data.notes) data.notes = sanitizeHtml(data.notes);
     
     // 4. Verifica duplicato (stesso telefono nelle ultime 24h)
     const existingLead = findDuplicateByPhone(data.phone);
@@ -152,11 +166,13 @@ export const POST: APIRoute = async ({ request }) => {
     
     const headers = new Headers({
       'Content-Type': 'application/json',
+      ...getCorsHeaders(request),
       ...ipLimit.headers,
       'X-Response-Time': `${Date.now() - startTime}ms`
     });
     
-    return new Response(JSON.stringify(response), { status: 201, headers });
+    const httpResponse = new Response(JSON.stringify(response), { status: 201, headers });
+    return applySecurityHeaders(httpResponse);
     
   } catch (error) {
     console.error('[Lead API] Error:', error);
@@ -166,45 +182,108 @@ export const POST: APIRoute = async ({ request }) => {
       code: 'INTERNAL_ERROR'
     };
     
-    return new Response(
+    const errorHeaders = new Headers({
+      'Content-Type': 'application/json',
+      ...getCorsHeaders(request),
+      'X-Response-Time': `${Date.now() - startTime}ms`
+    });
+    
+    const httpResponse = new Response(
       JSON.stringify(errorResponse),
       { 
         status: 500, 
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-Response-Time': `${Date.now() - startTime}ms`
-        } 
+        headers: errorHeaders
       }
     );
+    
+    return applySecurityHeaders(httpResponse);
   }
 };
 
-// Endpoint GET per listare leads (admin/debug)
+// Endpoint GET per listare leads (admin only)
 export const GET: APIRoute = ({ request }) => {
-  // Simple auth check (in produzione usare JWT o session)
+  const startTime = Date.now();
+  
+  // Handle CORS preflight
+  const preflight = handleCorsPreflight(request);
+  if (preflight) return applySecurityHeaders(preflight);
+  
+  // SECURITY FIX: Admin authentication is now REQUIRED (not optional)
   const authHeader = request.headers.get('authorization');
   const adminToken = import.meta.env.ADMIN_TOKEN || process.env.ADMIN_TOKEN;
   
-  if (adminToken && authHeader !== `Bearer ${adminToken}`) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized', code: 'UNAUTHORIZED' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
+  // Reject if admin token is not configured
+  if (!adminToken) {
+    console.error('[Lead API] ADMIN_TOKEN not configured');
+    const response = new Response(
+      JSON.stringify({ error: 'Admin access not configured', code: 'NOT_CONFIGURED' }),
+      { status: 503, headers: { 'Content-Type': 'application/json', ...getCorsHeaders(request) } }
     );
+    return applySecurityHeaders(response);
   }
   
-  const leads = Array.from(leadsStore.values())
+  // Verify Bearer token
+  if (!authHeader || authHeader !== `Bearer ${adminToken}`) {
+    console.warn('[Lead API] Unauthorized admin access attempt');
+    const response = new Response(
+      JSON.stringify({ error: 'Unauthorized', code: 'UNAUTHORIZED' }),
+      { status: 401, headers: { 'Content-Type': 'application/json', ...getCorsHeaders(request) } }
+    );
+    return applySecurityHeaders(response);
+  }
+  
+  // SECURITY FIX: Rate limiting specifico per admin endpoint
+  const clientIP = RateLimiter.getClientIP(request);
+  const adminLimit = rateLimiter.checkWithHeaders(clientIP, 'admin:lead');
+  
+  if (!adminLimit.allowed) {
+    console.warn(`[Lead API] Admin rate limit exceeded for IP: ${clientIP}`);
+    const response = createRateLimitResponse(adminLimit.retryAfter || 60);
+    return applySecurityHeaders(response);
+  }
+  
+  // SECURITY FIX: Implement pagination
+  const url = new URL(request.url);
+  const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+  const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10))); // Max 100 per page
+  
+  const allLeads = Array.from(leadsStore.values())
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   
-  return new Response(
+  const total = allLeads.length;
+  const totalPages = Math.ceil(total / limit);
+  const offset = (page - 1) * limit;
+  const paginatedLeads = allLeads.slice(offset, offset + limit);
+  
+  const response = new Response(
     JSON.stringify({ 
-      count: leads.length,
-      leads: leads.map(l => ({
+      success: true,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
+      },
+      count: paginatedLeads.length,
+      leads: paginatedLeads.map(l => ({
         ...l,
         createdAt: l.createdAt.toISOString()
       }))
     }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
+    { 
+      status: 200, 
+      headers: { 
+        'Content-Type': 'application/json',
+        ...getCorsHeaders(request),
+        ...adminLimit.headers,
+        'X-Response-Time': `${Date.now() - startTime}ms`
+      } 
+    }
   );
+  
+  return applySecurityHeaders(response);
 };
 
 // Trova duplicato per telefono (ultime 24h)

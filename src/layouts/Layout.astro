@@ -1,14 +1,18 @@
 ---
+import Navigation from '../components/Navigation.astro';
+
 export interface Props {
   title: string;
   description?: string;
   image?: string;
+  showNavigation?: boolean;
 }
 
 const { 
   title, 
   description = "Centro Fisioterapia Movimento - Riprendi il controllo del tuo corpo con fisioterapia specializzata",
-  image = "/og-image.jpg"
+  image = "/og-image.jpg",
+  showNavigation = true
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://centrofisioterapia.it");
@@ -99,7 +103,35 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://centrofi
   </head>
   
   <body class="font-sans antialiased bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-300">
+    {showNavigation && <Navigation />}
+    
     <slot />
+    
+    <!-- Scroll Reveal Observer Script -->
+    <script>
+      // Intersection Observer for scroll reveal animations
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.1
+      };
+
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            // Optionally unobserve after animation
+            // revealObserver.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      // Observe all reveal elements
+      document.addEventListener('DOMContentLoaded', () => {
+        const revealElements = document.querySelectorAll('.reveal, .stagger-children');
+        revealElements.forEach((el) => revealObserver.observe(el));
+      });
+    </script>
   </body>
 </html>
 
@@ -144,6 +176,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://centrofi
     background-color: rgba(37, 99, 235, 0.2);
   }
   
+  .dark ::selection {
+    background-color: rgba(96, 165, 250, 0.3);
+  }
+  
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
@@ -165,5 +201,19 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://centrofi
   
   ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+  
+  /* Image loading optimization */
+  img {
+    content-visibility: auto;
+  }
+  
+  /* Prevent layout shift for images */
+  img[width][height] {
+    height: auto;
   }
 </style>

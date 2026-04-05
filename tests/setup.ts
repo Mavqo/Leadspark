@@ -4,6 +4,7 @@
  */
 
 import { vi, beforeEach, afterEach } from 'vitest';
+import '@testing-library/jest-dom';
 
 // ============================================================================
 // GLOBAL MOCKS
@@ -111,7 +112,8 @@ afterEach(() => {
 // MATCHERS CUSTOM (opzionali)
 // ============================================================================
 
-// Esempio di matcher custom
+// Esempio di matcher custom - expect è già importato globalmente da vitest
+// @ts-expect-error - expect è disponibile globalmente tramite vitest import
 expect.extend({
   toBeValidPazienteId(received: string) {
     const pass = /^paz_\d+_[a-z0-9]+$/.test(received);

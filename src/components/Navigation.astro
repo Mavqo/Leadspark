@@ -1,0 +1,301 @@
+---
+export interface Props {
+  transparent?: boolean;
+}
+
+const { transparent = false } = Astro.props;
+
+const navLinks = [
+  { href: '#services', label: 'Servizi' },
+  { href: '#about', label: 'Chi Siamo' },
+  { href: '#testimonials', label: 'Testimonianze' },
+  { href: '#contact', label: 'Contatti' },
+];
+---
+
+<header 
+  id="main-header"
+  class={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+    transparent 
+      ? 'bg-transparent' 
+      : 'glass border-b border-slate-200/50 dark:border-slate-700/50'
+  }`}
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav class="flex items-center justify-between h-16 lg:h-20">
+      {/* Logo */}
+      <a 
+        href="#" 
+        class="flex items-center gap-2 group"
+        aria-label="Centro Fisioterapia Movimento - Torna all'inizio"
+      >
+        <div class="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-shadow duration-300">
+          <svg class="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+          </svg>
+        </div>
+        <span class="font-bold text-lg lg:text-xl text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+          Movimento
+        </span>
+      </a>
+
+      {/* Desktop Navigation */}
+      <div class="hidden md:flex items-center gap-1">
+        {navLinks.map((link) => (
+          <a 
+            href={link.href}
+            class="relative px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 group"
+          >
+            {link.label}
+            <span class="absolute bottom-1 left-4 right-4 h-0.5 bg-blue-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full"></span>
+          </a>
+        ))}
+      </div>
+
+      {/* CTA & Theme Toggle */}
+      <div class="flex items-center gap-2 lg:gap-4">
+        {/* Desktop CTA */}
+        <a 
+          href="#contact" 
+          class="hidden sm:inline-flex"
+        >
+          <button class="btn-shine btn-ripple px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white text-sm font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all duration-300 hover:-translate-y-0.5">
+            Prenota ora
+          </button>
+        </a>
+        
+        {/* Theme Toggle */}
+        <button 
+          id="theme-toggle"
+          class="p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 focus-ring"
+          aria-label="Cambia tema"
+          title="Cambia tema"
+        >
+          {/* Sun Icon */}
+          <svg id="sun-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+          {/* Moon Icon */}
+          <svg id="moon-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+          </svg>
+        </button>
+
+        {/* Mobile Menu Button */}
+        <button 
+          id="mobile-menu-btn"
+          class="md:hidden p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 focus-ring"
+          aria-label="Apri menu"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+        >
+          <svg id="menu-icon" class="w-6 h-6 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+          <svg id="close-icon" class="w-6 h-6 hidden transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  {/* Mobile Menu */}
+  <div 
+    id="mobile-menu" 
+    class="md:hidden fixed inset-x-0 top-16 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700 shadow-xl transition-all duration-300 opacity-0 invisible -translate-y-4"
+    role="navigation"
+    aria-label="Menu mobile"
+  >
+    <div class="px-4 py-6 space-y-2">
+      {navLinks.map((link, index) => (
+        <a 
+          href={link.href}
+          class="mobile-nav-link block py-3 px-4 text-base font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all duration-200 opacity-0 -translate-x-4"
+          style={`transition-delay: ${index * 50}ms`}
+        >
+          {link.label}
+        </a>
+      ))}
+      <div class="pt-4 mt-4 border-t border-slate-200 dark:border-slate-700">
+        <a 
+          href="#contact" 
+          class="mobile-nav-link block opacity-0 -translate-x-4"
+          style={`transition-delay: ${navLinks.length * 50}ms`}
+        >
+          <button class="w-full btn-shine py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg shadow-blue-500/25 transition-all duration-300">
+            Prenota ora
+          </button>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+{/* Spacer for fixed header */}
+<div class="h-16 lg:h-20"></div>
+
+<script>
+  // Theme Toggle Logic
+  const themeToggle = document.getElementById('theme-toggle');
+  const html = document.documentElement;
+
+  themeToggle?.addEventListener('click', () => {
+    const isDark = html.classList.contains('dark');
+    
+    if (isDark) {
+      html.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    } else {
+      html.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    }
+  });
+
+  // Mobile Menu Logic
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuIcon = document.getElementById('menu-icon');
+  const closeIcon = document.getElementById('close-icon');
+  const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+  let isMenuOpen = false;
+
+  function toggleMenu() {
+    isMenuOpen = !isMenuOpen;
+    
+    // Toggle menu visibility
+    if (isMenuOpen) {
+      mobileMenu?.classList.remove('opacity-0', 'invisible', '-translate-y-4');
+      mobileMenu?.classList.add('opacity-100', 'visible', 'translate-y-0');
+      menuIcon?.classList.add('hidden');
+      closeIcon?.classList.remove('hidden');
+      mobileMenuBtn?.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+      
+      // Animate links
+      setTimeout(() => {
+        mobileNavLinks.forEach((link) => {
+          link.classList.remove('opacity-0', '-translate-x-4');
+          link.classList.add('opacity-100', 'translate-x-0');
+        });
+      }, 50);
+    } else {
+      mobileMenu?.classList.add('opacity-0', 'invisible', '-translate-y-4');
+      mobileMenu?.classList.remove('opacity-100', 'visible', 'translate-y-0');
+      menuIcon?.classList.remove('hidden');
+      closeIcon?.classList.add('hidden');
+      mobileMenuBtn?.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+      
+      // Reset links animation
+      mobileNavLinks.forEach((link) => {
+        link.classList.add('opacity-0', '-translate-x-4');
+        link.classList.remove('opacity-100', 'translate-x-0');
+      });
+    }
+  }
+
+  mobileMenuBtn?.addEventListener('click', toggleMenu);
+
+  // Close mobile menu on link click
+  mobileNavLinks.forEach((link) => {
+    link.addEventListener('click', () => {
+      if (isMenuOpen) {
+        toggleMenu();
+      }
+    });
+  });
+
+  // Close menu on escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isMenuOpen) {
+      toggleMenu();
+    }
+  });
+
+  // Close menu on click outside
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (isMenuOpen && 
+        !mobileMenu?.contains(target) && 
+        !mobileMenuBtn?.contains(target)) {
+      toggleMenu();
+    }
+  });
+
+  // Header scroll effect
+  const header = document.getElementById('main-header');
+  let lastScroll = 0;
+
+  window.addEventListener('scroll', () => {
+    const currentScroll = window.pageYOffset;
+    
+    // Add background on scroll
+    if (currentScroll > 20) {
+      header?.classList.add('glass-strong');
+      header?.classList.remove('bg-transparent');
+    } else if (header?.classList.contains('glass-strong')) {
+      header?.classList.remove('glass-strong');
+    }
+    
+    // Hide/show on scroll direction (optional - can be removed if not desired)
+    if (currentScroll > lastScroll && currentScroll > 100) {
+      // Scrolling down
+      header?.classList.add('-translate-y-full');
+    } else {
+      // Scrolling up
+      header?.classList.remove('-translate-y-full');
+    }
+    
+    lastScroll = currentScroll;
+  }, { passive: true });
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const href = (e.currentTarget as HTMLAnchorElement).getAttribute('href');
+      if (href && href !== '#') {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          const headerOffset = 80;
+          const elementPosition = target.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+  /* Header transition for hide/show on scroll */
+  #main-header {
+    transition: transform 0.3s var(--ease-out-expo), 
+                background-color 0.3s var(--ease-out-quart),
+                backdrop-filter 0.3s var(--ease-out-quart);
+  }
+  
+  /* Mobile menu link animation */
+  .mobile-nav-link {
+    transition: opacity 0.3s var(--ease-out-expo), 
+                transform 0.3s var(--ease-out-expo),
+                background-color 0.2s ease,
+                color 0.2s ease;
+  }
+  
+  /* Active state indicator */
+  .mobile-nav-link:active {
+    transform: scale(0.98) !important;
+  }
+  
+  /* Menu icon rotation animation */
+  #menu-icon,
+  #close-icon {
+    transition: transform 0.3s var(--ease-out-back), opacity 0.2s ease;
+  }
+</style>

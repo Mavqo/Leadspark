@@ -1,0 +1,38 @@
+# =============================================================================
+# DOCKER COMPOSE - Development
+# LeadSpark - Astro 4 + Node Adapter
+# =============================================================================
+
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      target: builder
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+      - "4321:4321"  # Astro dev server port
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/dist
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    env_file:
+      - .env
+    command: npm run dev
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:4321/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - leadspark-network
+
+networks:
+  leadspark-network:
+    driver: bridge

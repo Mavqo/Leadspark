@@ -1,8 +1,10 @@
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
-import { createChatCompletion, generateSessionId } from '../../lib/openai';
-import { rateLimiter, createRateLimitResponse } from '../../lib/rate-limiter';
-import type { ChatContext, ChatRequest, ChatResponse } from '../../types/paziente';
+import { createChatCompletion } from '../../lib/openai';
+import { rateLimiter, createRateLimitResponse, RateLimiter } from '../../lib/rate-limiter';
+import { getCorsHeaders, handleCorsPreflight } from '../../lib/cors';
+import { applySecurityHeaders, parseJsonBody, sanitizeHtml } from '../../lib/security';
+import type { ChatContext, ChatResponse } from '../../types/paziente';
 
 // Schema validazione request
 const chatRequestSchema = z.object({
@@ -24,26 +26,32 @@ const sessions = new Map<string, ChatContext>();
 export const POST: APIRoute = async ({ request }) => {
   const startTime = Date.now();
   
+  // Handle CORS preflight
+  const preflight = handleCorsPreflight(request);
+  if (preflight) return applySecurityHeaders(preflight);
+  
   try {
     // 1. Rate limiting per IP
-    const clientIP = rateLimiter.constructor.getClientIP(request);
+    const clientIP = RateLimiter.getClientIP(request);
     const ipLimit = rateLimiter.checkWithHeaders(clientIP, 'chat:ip');
     
     if (!ipLimit.allowed) {
       console.warn(`[Chat API] Rate limit exceeded for IP: ${clientIP}`);
-      return createRateLimitResponse(ipLimit.retryAfter || 60);
+      const response = createRateLimitResponse(ipLimit.retryAfter || 60);
+      return applySecurityHeaders(response);
     }
     
-    // 2. Parse body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return new Response(
-        JSON.stringify({ error: 'Invalid JSON body', code: 'INVALID_JSON' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+    // 2. Parse body with size limit (1MB)
+    const bodyResult = await parseJsonBody(request, 1024 * 1024);
+    if (!bodyResult.success) {
+      return applySecurityHeaders(
+        new Response(
+          JSON.stringify({ error: bodyResult.error, code: bodyResult.code }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        )
       );
     }
+    let body: unknown = bodyResult.data;
     
     // 3. Validazione Zod
     const parseResult = chatRequestSchema.safeParse(body);
@@ -59,9 +67,12 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
     
-    const { message, sessionId, context: clientContext } = parseResult.data;
+    let { message, sessionId, context: clientContext } = parseResult.data;
     
-    // 4. Rate limiting per sessione
+    // 4. XSS Prevention: Sanitize user message
+    message = sanitizeHtml(message);
+    
+    // 5. Rate limiting per sessione
     const sessionLimit = rateLimiter.checkWithHeaders(sessionId, 'chat:session');
     if (!sessionLimit.allowed) {
       console.warn(`[Chat API] Rate limit exceeded for session: ${sessionId}`);
@@ -91,8 +102,9 @@ export const POST: APIRoute = async ({ request }) => {
     const chatResponse = await createChatCompletion({ message, context });
     
     // 7. Aggiorna contesto
+    // XSS Prevention: Sanitize both user message and assistant reply before storing
     context.history.push({ role: 'user', content: message });
-    context.history.push({ role: 'assistant', content: chatResponse.reply });
+    context.history.push({ role: 'assistant', content: sanitizeHtml(chatResponse.reply) });
     context.step = chatResponse.step || context.step;
     if (chatResponse.leadData) {
       context.collectedData = { ...context.collectedData, ...chatResponse.leadData };
@@ -109,9 +121,10 @@ export const POST: APIRoute = async ({ request }) => {
       step: chatResponse.step
     };
     
-    // 9. Headers di risposta
+    // 9. Headers di risposta (with CORS and Security headers)
     const headers = new Headers({
       'Content-Type': 'application/json',
+      ...getCorsHeaders(request),
       ...ipLimit.headers,
       ...sessionLimit.headers,
       'X-Response-Time': `${Date.now() - startTime}ms`
@@ -120,7 +133,8 @@ export const POST: APIRoute = async ({ request }) => {
     // Log per debug
     console.log(`[Chat API] Session ${sessionId}, Step: ${responseData.step}, Complete: ${responseData.complete}, Time: ${Date.now() - startTime}ms`);
     
-    return new Response(JSON.stringify(responseData), { status: 200, headers });
+    const response = new Response(JSON.stringify(responseData), { status: 200, headers });
+    return applySecurityHeaders(response);
     
   } catch (error) {
     console.error('[Chat API] Error:', error);
@@ -135,7 +149,13 @@ export const POST: APIRoute = async ({ request }) => {
       ? 'Service temporarily unavailable. Please try again.'
       : 'An unexpected error occurred.';
     
-    return new Response(
+    const errorHeaders = new Headers({
+      'Content-Type': 'application/json',
+      ...getCorsHeaders(request),
+      'X-Response-Time': `${Date.now() - startTime}ms`
+    });
+    
+    const errorResponse = new Response(
       JSON.stringify({ 
         error: errorMessage, 
         code: errorCode,
@@ -143,26 +163,37 @@ export const POST: APIRoute = async ({ request }) => {
       }),
       { 
         status: statusCode, 
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-Response-Time': `${Date.now() - startTime}ms`
-        } 
+        headers: errorHeaders
       }
     );
+    
+    return applySecurityHeaders(errorResponse);
   }
 };
 
 // Endpoint GET per health check
-export const GET: APIRoute = () => {
-  return new Response(
+export const GET: APIRoute = ({ request }) => {
+  // Handle CORS preflight
+  const preflight = handleCorsPreflight(request);
+  if (preflight) return applySecurityHeaders(preflight);
+  
+  const response = new Response(
     JSON.stringify({ 
       status: 'ok', 
       service: 'chat-api',
       timestamp: new Date().toISOString(),
       sessions: sessions.size
     }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
+    { 
+      status: 200, 
+      headers: { 
+        'Content-Type': 'application/json',
+        ...getCorsHeaders(request)
+      } 
+    }
   );
+  
+  return applySecurityHeaders(response);
 };
 
 // Cleanup sessioni vecchie ogni ora

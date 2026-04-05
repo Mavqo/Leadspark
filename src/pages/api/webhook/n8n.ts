@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { z } from 'zod';
-import { rateLimiter, createRateLimitResponse } from '../../../lib/rate-limiter';
+import { rateLimiter, createRateLimitResponse, RateLimiter } from '../../../lib/rate-limiter';
+import { getCorsHeaders, handleCorsPreflight } from '../../../lib/cors';
+import { applySecurityHeaders } from '../../../lib/security';
 import type { WebhookEvent, ApiError } from '../../../types/paziente';
 
 // Schema validazione evento webhook
@@ -24,14 +26,36 @@ if (!WEBHOOK_SECRET) {
 export const POST: APIRoute = async ({ request }) => {
   const startTime = Date.now();
   
+  // Handle CORS preflight
+  const preflight = handleCorsPreflight(request);
+  if (preflight) return applySecurityHeaders(preflight);
+  
   try {
     // 1. Rate limiting
-    const clientIP = rateLimiter.constructor.getClientIP(request);
+    const clientIP = RateLimiter.getClientIP(request);
     const ipLimit = rateLimiter.checkWithHeaders(clientIP, 'webhook:ip');
     
     if (!ipLimit.allowed) {
       console.warn(`[Webhook n8n] Rate limit exceeded for IP: ${clientIP}`);
-      return createRateLimitResponse(ipLimit.retryAfter || 60);
+      const response = createRateLimitResponse(ipLimit.retryAfter || 60);
+      return applySecurityHeaders(response);
+    }
+    
+    // 1.5. Check request size (1MB limit)
+    const contentLength = request.headers.get('content-length');
+    if (contentLength) {
+      const size = parseInt(contentLength, 10);
+      if (!isNaN(size) && size > 1024 * 1024) {
+        const error: ApiError = {
+          error: 'Request body too large. Maximum size is 1MB.',
+          code: 'REQUEST_TOO_LARGE'
+        };
+        const response = new Response(
+          JSON.stringify(error),
+          { status: 413, headers: { 'Content-Type': 'application/json' } }
+        );
+        return applySecurityHeaders(response);
+      }
     }
     
     // 2. Verifica HMAC signature
@@ -71,10 +95,11 @@ export const POST: APIRoute = async ({ request }) => {
         error: 'Invalid webhook signature',
         code: 'INVALID_SIGNATURE'
       };
-      return new Response(
+      const response = new Response(
         JSON.stringify(error),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
+      return applySecurityHeaders(response);
     }
     
     // 5. Parse JSON
@@ -107,7 +132,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
     
-    const event: WebhookEvent = parseResult.data;
+    const event = parseResult.data as WebhookEvent;
     
     // 7. Gestione evento
     await handleEvent(event);
@@ -115,6 +140,7 @@ export const POST: APIRoute = async ({ request }) => {
     // 8. Risposta successo
     const headers = new Headers({
       'Content-Type': 'application/json',
+      ...getCorsHeaders(request),
       ...ipLimit.headers,
       'X-Response-Time': `${Date.now() - startTime}ms`,
       'X-Event-Processed': event.event
@@ -122,10 +148,11 @@ export const POST: APIRoute = async ({ request }) => {
     
     console.log(`[Webhook n8n] Event ${event.event} processed successfully`);
     
-    return new Response(
+    const response = new Response(
       JSON.stringify({ received: true, event: event.event }),
       { status: 200, headers }
     );
+    return applySecurityHeaders(response);
     
   } catch (error) {
     console.error('[Webhook n8n] Error:', error);
@@ -135,16 +162,21 @@ export const POST: APIRoute = async ({ request }) => {
       code: 'INTERNAL_ERROR'
     };
     
-    return new Response(
+    const errorHeaders = new Headers({
+      'Content-Type': 'application/json',
+      ...getCorsHeaders(request),
+      'X-Response-Time': `${Date.now() - startTime}ms`
+    });
+    
+    const response = new Response(
       JSON.stringify(errorResponse),
       { 
         status: 500, 
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-Response-Time': `${Date.now() - startTime}ms`
-        } 
+        headers: errorHeaders
       }
     );
+    
+    return applySecurityHeaders(response);
   }
 };
 
@@ -257,13 +289,25 @@ async function verifySignature(payload: string, signature: string): Promise<bool
 }
 
 // Health check endpoint
-export const GET: APIRoute = () => {
-  return new Response(
+export const GET: APIRoute = ({ request }) => {
+  // Handle CORS preflight
+  const preflight = handleCorsPreflight(request);
+  if (preflight) return applySecurityHeaders(preflight);
+  
+  const response = new Response(
     JSON.stringify({ 
       status: 'ok', 
       service: 'webhook-n8n',
       timestamp: new Date().toISOString()
     }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
+    { 
+      status: 200, 
+      headers: { 
+        'Content-Type': 'application/json',
+        ...getCorsHeaders(request)
+      } 
+    }
   );
+  
+  return applySecurityHeaders(response);
 };

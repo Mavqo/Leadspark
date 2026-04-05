@@ -11,8 +11,11 @@ export default defineConfig({
     // Abilita globals (describe, it, expect, etc.)
     globals: true,
     
-    // Ambiente Node.js (per API routes Astro)
-    environment: 'node',
+    // Ambiente happy-dom per supportare React components
+    environment: 'happy-dom',
+    
+    // CSS processing disabilitato per i test
+    css: false,
     
     // File di setup
     setupFiles: ['./tests/setup.ts'],
@@ -34,7 +37,7 @@ export default defineConfig({
     hookTimeout: 5000,
     
     // Reporter
-    reporter: ['verbose', 'dot'],
+    reporters: ['verbose', 'dot'],
     
     // Coverage
     coverage: {
