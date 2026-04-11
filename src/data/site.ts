@@ -1,10 +1,10 @@
 // Site metadata and configuration
 export const siteConfig = {
-  name: 'Centro Fisioterapia Movimento',
-  shortName: 'Movimento',
-  tagline: 'Riprendi il controllo del tuo corpo',
-  description: 'Fisioterapia specializzata per il tuo benessere. Un team di professionisti dedicati a guidarti nel percorso di recupero e miglioramento della tua qualità di vita.',
-  url: 'https://centrofisioterapia.it',
+  name: 'LeadSpark',
+  shortName: 'LeadSpark',
+  tagline: 'AI-powered lead intake for SMBs',
+  description: 'LeadSpark by Mavqo — capture, qualify, and route inbound leads automatically with AI-powered intake automation.',
+  url: 'https://leads.mavqo.dev',
   ogImage: '/og-image.jpg',
   locale: 'it_IT',
   
@@ -57,9 +57,9 @@ export const siteConfig = {
   
   // SEO
   seo: {
-    titleTemplate: '%s | Centro Fisioterapia Movimento',
-    defaultTitle: 'Centro Fisioterapia Movimento - Fisioterapia Specializzata a Milano',
-    keywords: ['fisioterapia', 'riabilitazione', 'fisioterapista', 'milano', 'terapia manuale', 'fisioterapia sportiva']
+    titleTemplate: '%s | LeadSpark by Mavqo',
+    defaultTitle: 'LeadSpark — AI Lead Intake Automation for SMBs',
+    keywords: ['lead generation', 'lead intake', 'ai automation', 'smb', 'mavqo', 'leadspark', 'crm automation']
   }
 };
 

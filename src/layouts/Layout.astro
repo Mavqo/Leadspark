@@ -10,12 +10,12 @@ export interface Props {
 
 const { 
   title, 
-  description = "Centro Fisioterapia Movimento - Riprendi il controllo del tuo corpo con fisioterapia specializzata",
+  description = "LeadSpark by Mavqo — AI-powered lead generation and intake automation for SMBs",
   image = "/og-image.jpg",
   showNavigation = true
 } = Astro.props;
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://centrofisioterapia.it");
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://leads.mavqo.dev");
 ---
 
 <!DOCTYPE html>
@@ -84,20 +84,17 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://centrofi
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "MedicalBusiness",
-        "name": "Centro Fisioterapia Movimento",
-        "description": "Fisioterapia specializzata per il tuo benessere",
-        "url": "https://centrofisioterapia.it",
-        "telephone": "+39-XXX-XXXXXXX",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "Via Example 123",
-          "addressLocality": "Città",
-          "postalCode": "00100",
-          "addressCountry": "IT"
-        },
-        "openingHours": "Mo-Fr 09:00-19:00",
-        "priceRange": "€€"
+        "@type": "WebApplication",
+        "name": "LeadSpark",
+        "description": "AI-powered lead generation and intake automation for SMBs",
+        "url": "https://leads.mavqo.dev",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        }
       }
     </script>
   </head>

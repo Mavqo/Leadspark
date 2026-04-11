@@ -197,9 +197,9 @@ export async function extractLeadData(
 
 function getFallbackResponse(step: ChatContext['step']): string {
   const fallbacks: Record<ChatContext['step'], string> = {
-    greeting: 'Ciao! Sono Emma, l\'assistente del Centro Fisioterapia Movimento. Come posso aiutarti oggi?',
-    symptom: 'Mi dispiace sentire che non stai bene. Puoi dirmi di più sui sintomi che stai avvertendo?',
-    duration: 'Capisco. Da quanto tempo hai questo problema?',
+    greeting: 'Ciao! Sono Emma, l\'assistente di LeadSpark by Mavqo. Come posso aiutarti oggi?',
+    symptom: 'Capisco. Puoi dirmi di più su cosa vorresti automatizzare o migliorare nel tuo processo di acquisizione lead?',
+    duration: 'Grazie. Da quanto tempo stai cercando una soluzione per questo?',
     urgency: 'Grazie per queste informazioni. Hai bisogno di essere contattato urgentemente o può attendere qualche giorno?',
     availability: 'Perfetto. Quando saresti disponibile per una visita? Preferisci mattina o pomeriggio?',
     contact: 'Per completare la richiesta, ho bisogno dei tuoi dati di contatto. Potresti darmi il tuo nome completo e numero di telefono?',
