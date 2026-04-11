@@ -34,7 +34,10 @@ Questa guida copre il deployment di LeadSpark su Vercel e Netlify.
    OPENAI_API_KEY=sk-...
    N8N_WEBHOOK_URL=https://...
    WEBHOOK_SECRET=your-secret-here
+   LEADSPARK_DATA_DIR=/app/data
    ```
+
+   Note: `LEADSPARK_DATA_DIR` should point to persistent storage on the hosting platform.
 
 4. **Deploy**
    ```bash
@@ -106,6 +109,56 @@ Aggiungi il dominio di produzione ai siti consentiti in n8n.
 - [ ] n8n webhook raggiungibile
 - [ ] CORS configurato
 - [ ] Secrets cambiati da default
+
+---
+
+## 🔎 Post-Deploy Verification (obbligatorio)
+
+Usa il verificatore repo-native per validare homepage + health endpoint e produrre evidenza auditabile:
+
+```bash
+npm run verify:deploy
+```
+
+Con release ID esplicito:
+
+```bash
+TARGET_URL=https://your-leadspark-domain \
+EXPECTED_SHA_TAG=<git-sha> \
+npm run verify:deploy
+```
+
+Input operatore richiesti:
+- `TARGET_URL` (URL deploy reale)
+- `HEALTH_PATH` (default `/api/health`)
+- `EXPECTED_PAGE_TEXT` (default `Centro Fisioterapia Movimento`)
+- `EXPECTED_HEALTH_BODY` (default `"status":"ok"`)
+- `EVIDENCE_DIR` (default `ops/evidence/deploy-checks`)
+- opzionali per image deploy: `REGISTRY_URL`, `IMAGE_NAME`, `EXPECTED_TAG`, `EXPECTED_SHA_TAG`, `EXPECTED_RUNTIME_SHA`
+
+Quando `EXPECTED_SHA_TAG` o `EXPECTED_RUNTIME_SHA` sono impostati, il verificatore richiede che `/api/health` esponga lo stesso SHA nel payload runtime:
+
+```json
+{
+  "status": "ok",
+  "service": "leadspark",
+  "release": {
+    "gitSha": "<commit-sha>",
+    "buildTime": "<timestamp>"
+  }
+}
+```
+
+Se un check fallisce, il comando termina con exit code non-zero e scrive `Result: FAIL` nel file evidenza.
+
+### Rollback checkpoint
+
+Esegui rollback dopo un solo retry quando uno dei check richiesti resta in errore:
+- homepage non disponibile o marker assente
+- health endpoint non `200` o marker assente
+- tag richiesti mancanti (quando registry checks sono attivi)
+
+Nel rollback note includi: release stabile usata, motivo del rollback e path file evidenza.
 
 ---
 

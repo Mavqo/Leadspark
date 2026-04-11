@@ -8,6 +8,7 @@
     "build": "npm run build:css && astro build",
     "build:css": "tailwindcss -i ./src/styles/globals.css -o ./public/styles.css --minify",
     "start": "node ./dist/server/entry.mjs",
+    "verify:deploy": "bash ./scripts/verify-post-deploy.sh",
     "preview": "astro preview",
     "test": "vitest run",
     "test:watch": "vitest",

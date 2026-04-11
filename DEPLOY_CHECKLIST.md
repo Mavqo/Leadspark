@@ -16,6 +16,8 @@
 - Output Directory: dist
 
 ## Post-deploy
+- [ ] Esegui `npm run verify:deploy` (con `TARGET_URL` produzione)
+- [ ] Conferma `Result: PASS` nel file evidenza in `ops/evidence/deploy-checks/`
 - [ ] Testa chatbot sulla URL
 - [ ] Verifica API endpoints
 - [ ] Controlla console errori

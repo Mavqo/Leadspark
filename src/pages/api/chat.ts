@@ -4,6 +4,12 @@ import { createChatCompletion } from '../../lib/openai';
 import { rateLimiter, createRateLimitResponse, RateLimiter } from '../../lib/rate-limiter';
 import { getCorsHeaders, handleCorsPreflight } from '../../lib/cors';
 import { applySecurityHeaders, parseJsonBody, sanitizeHtml } from '../../lib/security';
+import {
+  cleanupChatSessions,
+  countChatSessions,
+  getChatSession,
+  saveChatSession
+} from '../../lib/persistence';
 import type { ChatContext, ChatResponse } from '../../types/paziente';
 
 // Schema validazione request
@@ -19,9 +25,6 @@ const chatRequestSchema = z.object({
     })).optional()
   }).optional()
 });
-
-// In-memory storage per sessioni (in produzione usare Redis)
-const sessions = new Map<string, ChatContext>();
 
 export const POST: APIRoute = async ({ request }) => {
   const startTime = Date.now();
@@ -81,8 +84,9 @@ export const POST: APIRoute = async ({ request }) => {
     
     // 5. Recupera o crea contesto sessione
     let context: ChatContext;
-    if (sessions.has(sessionId)) {
-      context = sessions.get(sessionId)!;
+    const storedSession = await getChatSession(sessionId);
+    if (storedSession) {
+      context = storedSession;
       // Merge con dati client se forniti
       if (clientContext) {
         context.collectedData = { ...context.collectedData, ...(clientContext.collectedData || {}) };
@@ -111,7 +115,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
     
     // Salva sessione
-    sessions.set(sessionId, context);
+    await saveChatSession(context);
     
     // 8. Prepara risposta
     const responseData: ChatResponse = {
@@ -172,17 +176,19 @@ export const POST: APIRoute = async ({ request }) => {
 };
 
 // Endpoint GET per health check
-export const GET: APIRoute = ({ request }) => {
+export const GET: APIRoute = async ({ request }) => {
   // Handle CORS preflight
   const preflight = handleCorsPreflight(request);
   if (preflight) return applySecurityHeaders(preflight);
   
+  const sessions = await countChatSessions();
+
   const response = new Response(
     JSON.stringify({ 
       status: 'ok', 
       service: 'chat-api',
       timestamp: new Date().toISOString(),
-      sessions: sessions.size
+      sessions
     }),
     { 
       status: 200, 
@@ -198,23 +204,16 @@ export const GET: APIRoute = ({ request }) => {
 
 // Cleanup sessioni vecchie ogni ora
 setInterval(() => {
-  const oneHourAgo = Date.now() - (60 * 60 * 1000);
-  let cleaned = 0;
-  
-  sessions.forEach((context, sessionId) => {
-    // Rimuovi se ultimo messaggio > 1 ora
-    const lastMessage = context.history[context.history.length - 1];
-    if (lastMessage) {
-      // Nota: in produzione aggiungere timestamp ai messaggi
-      // Per ora rimuoviamo sessioni con history troppo lunga
-      if (context.history.length > 50) {
-        sessions.delete(sessionId);
-        cleaned++;
+  cleanupChatSessions({
+    maxAgeMs: 60 * 60 * 1000,
+    maxHistoryEntries: 50
+  })
+    .then((cleaned) => {
+      if (cleaned > 0) {
+        console.log(`[Chat API] Cleaned up ${cleaned} old sessions`);
       }
-    }
-  });
-  
-  if (cleaned > 0) {
-    console.log(`[Chat API] Cleaned up ${cleaned} old sessions`);
-  }
+    })
+    .catch((error) => {
+      console.error('[Chat API] Session cleanup error:', error);
+    });
 }, 60 * 60 * 1000);

@@ -1,227 +1,420 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import Hero from "../components/sections/Hero.astro";
-import Services from "../components/sections/Services.astro";
-import About from "../components/sections/About.astro";
-import Testimonials from "../components/sections/Testimonials.astro";
-import Contact from "../components/sections/Contact.astro";
-import LazyChatWidget from "../components/chatbot/LazyChatWidget";
 
 const seo = {
-  title: "Centro Fisioterapia Movimento | Fisioterapia Specializzata a Milano",
-  description: "Fisioterapia specializzata a Milano. Trattamenti personalizzati per riabilitazione sportiva, post-operatoria e terapia manuale. Prenota la tua visita oggi!",
-  image: "https://centrofisioterapia.it/og-image.jpg"
+  title: "AI Intake & Follow-up System | Portfolio Demo",
+  description:
+    "Demo responsive di intake strutturato e follow-up operativo per piccole attivita di servizi.",
+  image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&q=80"
 };
-
-// Hero image URL for preloading (must match Hero.astro)
-const heroImageUrl = "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80";
 ---
 
-<Layout 
-  title={seo.title}
-  description={seo.description}
-  image={seo.image}
-  preloadHeroImage={heroImageUrl}
->
-  {/* Navigation */}
-  <nav class="fixed top-0 left-0 right-0 z-50 glass border-b border-slate-200/50 dark:border-slate-700/50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        {/* Logo */}
-        <a href="#" class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-            </svg>
-          </div>
-          <span class="font-bold text-lg text-slate-900 dark:text-white">Movimento</span>
+<Layout title={seo.title} description={seo.description} image={seo.image} showNavigation={false}>
+  <a href="#intake-form" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-slate-900 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg">
+    Salta al form
+  </a>
+
+  <div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-teal-50/40 text-slate-900">
+    <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-lg">
+      <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+        <a href="#" class="flex items-center gap-3 font-semibold tracking-tight">
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-600 text-white">AI</span>
+          <span>Intake & Follow-up</span>
         </a>
-
-        {/* Desktop Navigation */}
-        <div class="hidden md:flex items-center gap-8">
-          <a href="#services" class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Servizi</a>
-          <a href="#about" class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Chi Siamo</a>
-          <a href="#testimonials" class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Testimonianze</a>
-          <a href="#contact" class="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Contatti</a>
-        </div>
-
-        {/* CTA & Theme Toggle */}
-        <div class="flex items-center gap-4">
-          <a href="#contact" class="hidden sm:inline-flex">
-            <button class="px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-sm font-medium transition-colors">
-              Prenota ora
-            </button>
-          </a>
-          
-          {/* Theme Toggle */}
-          <button 
-            id="theme-toggle"
-            class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            aria-label="Toggle theme"
-          >
-            {/* Sun Icon */}
-            <svg id="sun-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-            </svg>
-            {/* Moon Icon */}
-            <svg id="moon-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-            </svg>
-          </button>
-
-          {/* Mobile Menu Button */}
-          <button 
-            id="mobile-menu-btn"
-            class="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            aria-label="Menu"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    {/* Mobile Menu */}
-    <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg">
-      <div class="px-4 py-4 space-y-3">
-        <a href="#services" class="block py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400">Servizi</a>
-        <a href="#about" class="block py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400">Chi Siamo</a>
-        <a href="#testimonials" class="block py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400">Testimonianze</a>
-        <a href="#contact" class="block py-2 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400">Contatti</a>
-        <a href="#contact" class="block py-2">
-          <button class="w-full px-4 py-2 rounded-full bg-blue-600 text-white font-medium">
-            Prenota ora
-          </button>
+        <nav aria-label="Navigazione principale" class="hidden gap-7 text-sm font-medium text-slate-600 md:flex">
+          <a href="#how-it-works" class="hover:text-slate-900 transition-colors">Workflow</a>
+          <a href="#intake" class="hover:text-slate-900 transition-colors">Intake Demo</a>
+          <a href="#evidence" class="hover:text-slate-900 transition-colors">Evidence</a>
+        </nav>
+        <a href="#intake-form" class="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 transition-colors">
+          Avvia intake
         </a>
       </div>
-    </div>
-  </nav>
+    </header>
 
-  {/* Main Content */}
-  <main>
-    <Hero />
-    <Services />
-    <About />
-    <Testimonials />
-    <Contact />
-  </main>
-
-  {/* Footer */}
-  <footer class="bg-slate-900 text-slate-300 py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-        {/* Brand */}
+    <main>
+      <section class="mx-auto grid max-w-6xl gap-8 px-4 pb-12 pt-10 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-16">
         <div>
-          <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-              </svg>
-            </div>
-            <span class="font-bold text-lg text-white">Movimento</span>
-          </div>
-          <p class="text-sm text-slate-400 mb-4">
-            Centro di fisioterapia specializzato nel recupero funzionale e nel benessere dei nostri pazienti.
+          <p class="inline-flex rounded-full border border-teal-200 bg-teal-100/70 px-3 py-1 text-sm font-semibold text-teal-800">
+            Demo portfolio per SMB service businesses
           </p>
-          <div class="flex gap-4">
-            <a href="#" class="text-slate-400 hover:text-white transition-colors" aria-label="Facebook">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-            </a>
-            <a href="#" class="text-slate-400 hover:text-white transition-colors" aria-label="Instagram">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"/>
-              </svg>
-            </a>
-            <a href="#" class="text-slate-400 hover:text-white transition-colors" aria-label="LinkedIn">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227.792 24 1.771 24h20.542C24 .774 23.2 0 22.222 0h.003z"/>
-              </svg>
-            </a>
+          <h1 class="mt-5 text-4xl font-bold leading-tight tracking-tight text-slate-900 sm:text-5xl">
+            Intake strutturato, routing automatico, follow-up chiaro.
+          </h1>
+          <p class="mt-5 max-w-xl text-lg text-slate-600">
+            Esperienza client-facing progettata per sostituire demo chatbot-heavy con una raccolta richiesta piu credibile, veloce e pronta per automazioni `n8n`.
+          </p>
+          <ul class="mt-6 space-y-3 text-sm text-slate-700" aria-label="Benefit principali">
+            <li class="flex items-start gap-2"><span aria-hidden="true">✓</span> Form guidato con campi business-ready e priorita operativa</li>
+            <li class="flex items-start gap-2"><span aria-hidden="true">✓</span> Stati UI completi: loading, errore, vuoto e successo</li>
+            <li class="flex items-start gap-2"><span aria-hidden="true">✓</span> Integrazione API con fallback su contratto legacy</li>
+          </ul>
+        </div>
+
+        <aside class="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5" aria-label="Anteprima stato operativo">
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Pipeline snapshot</p>
+          <h2 class="mt-2 text-xl font-semibold">Stato demo in tempo reale</h2>
+          <div class="mt-5 space-y-3 text-sm">
+            <div class="flex items-center justify-between rounded-xl border border-slate-200 p-3">
+              <span>Nuove richieste oggi</span>
+              <strong class="text-teal-700">12</strong>
+            </div>
+            <div class="flex items-center justify-between rounded-xl border border-slate-200 p-3">
+              <span>Tempo medio presa in carico</span>
+              <strong class="text-teal-700">11 min</strong>
+            </div>
+            <div class="flex items-center justify-between rounded-xl border border-slate-200 p-3">
+              <span>Follow-up automatico</span>
+              <strong class="text-teal-700">Attivo</strong>
+            </div>
           </div>
-        </div>
+          <p class="mt-4 rounded-xl bg-slate-100 p-3 text-sm text-slate-600">
+            Questa card rende il valore commerciale visibile subito, utile per screenshot portfolio e demo call.
+          </p>
+        </aside>
+      </section>
 
-        {/* Quick Links */}
-        <div>
-          <h4 class="font-semibold text-white mb-4">Link rapidi</h4>
-          <ul class="space-y-2 text-sm">
-            <li><a href="#services" class="hover:text-white transition-colors">Servizi</a></li>
-            <li><a href="#about" class="hover:text-white transition-colors">Chi siamo</a></li>
-            <li><a href="#testimonials" class="hover:text-white transition-colors">Testimonianze</a></li>
-            <li><a href="#contact" class="hover:text-white transition-colors">Contatti</a></li>
-          </ul>
+      <section id="how-it-works" class="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:py-10">
+        <h2 class="text-2xl font-bold tracking-tight">Workflow in 3 step</h2>
+        <div class="mt-5 grid gap-4 md:grid-cols-3">
+          <article class="rounded-2xl border border-slate-200 bg-white p-5">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Step 1</p>
+            <h3 class="mt-2 text-lg font-semibold">Raccolta intent</h3>
+            <p class="mt-2 text-sm text-slate-600">Il form cattura contesto business, priorita e obiettivo con campi essenziali.</p>
+          </article>
+          <article class="rounded-2xl border border-slate-200 bg-white p-5">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Step 2</p>
+            <h3 class="mt-2 text-lg font-semibold">Routing API</h3>
+            <p class="mt-2 text-sm text-slate-600">Invio su contratto intake primario con fallback sicuro per compatibilita.</p>
+          </article>
+          <article class="rounded-2xl border border-slate-200 bg-white p-5">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Step 3</p>
+            <h3 class="mt-2 text-lg font-semibold">Follow-up</h3>
+            <p class="mt-2 text-sm text-slate-600">L'evento e pronto per trigger n8n: notifica, reminder e prima risposta.</p>
+          </article>
         </div>
+      </section>
 
-        {/* Services */}
-        <div>
-          <h4 class="font-semibold text-white mb-4">Servizi</h4>
-          <ul class="space-y-2 text-sm">
-            <li><a href="#services" class="hover:text-white transition-colors">Fisioterapia Sportiva</a></li>
-            <li><a href="#services" class="hover:text-white transition-colors">Riabilitazione Post-operatoria</a></li>
-            <li><a href="#services" class="hover:text-white transition-colors">Terapia Manuale</a></li>
-            <li><a href="#contact" class="hover:text-white transition-colors">Consulenza gratuita</a></li>
-          </ul>
+      <section id="intake" class="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6">
+        <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-900/5 sm:p-8">
+            <div class="mb-6">
+              <p class="text-sm font-semibold text-teal-700">Intake Demo</p>
+              <h2 class="mt-1 text-2xl font-bold tracking-tight">Compila una richiesta cliente</h2>
+              <p class="mt-2 text-sm text-slate-600">Campi progettati per SMB servizi locali. Tutti i campi marcati con * sono obbligatori.</p>
+            </div>
+
+            <form id="intake-form" class="space-y-5" novalidate>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="businessName" class="block text-sm font-medium text-slate-800">Nome attivita *</label>
+                  <input id="businessName" name="businessName" required autocomplete="organization" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" placeholder="Studio Alfa" />
+                </div>
+                <div>
+                  <label for="contactName" class="block text-sm font-medium text-slate-800">Referente *</label>
+                  <input id="contactName" name="contactName" required autocomplete="name" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" placeholder="Marco Bianchi" />
+                </div>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="email" class="block text-sm font-medium text-slate-800">Email *</label>
+                  <input id="email" name="email" type="email" required autocomplete="email" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" placeholder="marco@studio.it" />
+                </div>
+                <div>
+                  <label for="phone" class="block text-sm font-medium text-slate-800">Telefono *</label>
+                  <input id="phone" name="phone" type="tel" required autocomplete="tel" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" placeholder="+39 333 000 0000" />
+                </div>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="businessType" class="block text-sm font-medium text-slate-800">Settore *</label>
+                  <select id="businessType" name="businessType" required class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
+                    <option value="">Seleziona...</option>
+                    <option value="clinica">Clinica / Studio medico</option>
+                    <option value="beauty">Beauty / Wellness</option>
+                    <option value="home_services">Servizi casa / artigiani</option>
+                    <option value="legal_finance">Legale / consulenza</option>
+                    <option value="other">Altro</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="leadVolume" class="block text-sm font-medium text-slate-800">Richieste mensili stimate *</label>
+                  <select id="leadVolume" name="leadVolume" required class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
+                    <option value="">Seleziona...</option>
+                    <option value="0-20">0-20</option>
+                    <option value="21-50">21-50</option>
+                    <option value="51-100">51-100</option>
+                    <option value="100+">100+</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label for="goal" class="block text-sm font-medium text-slate-800">Obiettivo prioritario *</label>
+                <textarea id="goal" name="goal" rows="3" required class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" placeholder="Es. ridurre i tempi di risposta ai nuovi lead e migliorare la conversione delle richieste ad alta priorita."></textarea>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="urgency" class="block text-sm font-medium text-slate-800">Urgenza operativa *</label>
+                  <select id="urgency" name="urgency" required class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm">
+                    <option value="">Seleziona...</option>
+                    <option value="high">Alta - entro 7 giorni</option>
+                    <option value="medium">Media - entro 30 giorni</option>
+                    <option value="low">Bassa - esplorazione</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="timeline" class="block text-sm font-medium text-slate-800">Timeline prevista *</label>
+                  <input id="timeline" name="timeline" required class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" placeholder="Es. kick-off entro fine mese" />
+                </div>
+              </div>
+
+              <div>
+                <label for="notes" class="block text-sm font-medium text-slate-800">Note aggiuntive</label>
+                <textarea id="notes" name="notes" rows="2" class="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm" placeholder="Stack attuale, CRM in uso, vincoli, ecc."></textarea>
+              </div>
+
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <label for="consent" class="flex items-start gap-3 text-sm text-slate-600">
+                  <input id="consent" name="consent" type="checkbox" required class="mt-1 h-4 w-4 rounded border-slate-300" />
+                  <span>Confermo che i dati inseriti sono reali e autorizzo il trattamento per la demo operativa.</span>
+                </label>
+              </div>
+
+              <p id="form-error" class="hidden rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert"></p>
+
+              <button id="submit-button" type="submit" class="inline-flex w-full items-center justify-center rounded-xl bg-teal-600 px-4 py-3 font-semibold text-white hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-70">
+                <span id="button-label">Invia richiesta demo</span>
+              </button>
+            </form>
+          </div>
+
+          <aside id="evidence" class="space-y-4">
+            <div id="state-panel" class="rounded-3xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-900/5" aria-live="polite" aria-atomic="true">
+              <p class="text-sm font-semibold text-slate-700">Stato invio</p>
+              <p id="state-title" class="mt-2 text-lg font-semibold text-slate-900">Nessun invio effettuato</p>
+              <p id="state-description" class="mt-1 text-sm text-slate-600">Compila il form per vedere la conferma e il riepilogo evento.</p>
+            </div>
+
+            <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-lg shadow-slate-900/5">
+              <p class="text-sm font-semibold text-slate-700">Log workflow</p>
+              <ol id="events-list" class="mt-3 space-y-2 text-sm text-slate-600">
+                <li class="rounded-xl border border-slate-200 bg-slate-50 p-3">Nessun evento ancora disponibile.</li>
+              </ol>
+            </div>
+
+            <div class="rounded-3xl border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-lg shadow-slate-900/5">
+              <p class="font-semibold text-slate-800">Contract strategy</p>
+              <p class="mt-2">Il frontend prova prima `/api/intake` (nuovo contratto). Se non disponibile, usa `/api/lead` con mapping compatibile.</p>
+            </div>
+          </aside>
         </div>
-
-        {/* Contact */}
-        <div>
-          <h4 class="font-semibold text-white mb-4">Contatti</h4>
-          <ul class="space-y-2 text-sm">
-            <li>Via Roma 123, Milano</li>
-            <li><a href="tel:+390212345678" class="hover:text-white transition-colors">+39 02 1234 5678</a></li>
-            <li><a href="mailto:info@movimento.it" class="hover:text-white transition-colors">info@movimento.it</a></li>
-            <li>Lun-Ven: 9:00-19:00</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-        <p class="text-sm text-slate-500">
-          © {new Date().getFullYear()} Centro Fisioterapia Movimento. Tutti i diritti riservati.
-        </p>
-        <div class="flex gap-6 text-sm text-slate-500">
-          <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-          <a href="#" class="hover:text-white transition-colors">Cookie Policy</a>
-          <a href="#" class="hover:text-white transition-colors">Termini di servizio</a>
-        </div>
-      </div>
-    </div>
-  </footer>
-
-  {/* Lazy-loaded Chat Widget */}
-  <LazyChatWidget client:idle />
+      </section>
+    </main>
+  </div>
 </Layout>
 
 <script>
-  // Theme Toggle
-  const themeToggle = document.getElementById('theme-toggle');
-  const html = document.documentElement;
+  const form = document.getElementById("intake-form");
+  const submitButton = document.getElementById("submit-button");
+  const buttonLabel = document.getElementById("button-label");
+  const errorNode = document.getElementById("form-error");
+  const stateTitle = document.getElementById("state-title");
+  const stateDescription = document.getElementById("state-description");
+  const eventsList = document.getElementById("events-list");
 
-  themeToggle?.addEventListener('click', () => {
-    if (html.classList.contains('dark')) {
-      html.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    } else {
-      html.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
+  function setState(title, description) {
+    stateTitle.textContent = title;
+    stateDescription.textContent = description;
+  }
+
+  function setLoading(loading) {
+    submitButton.disabled = loading;
+    buttonLabel.textContent = loading ? "Invio in corso..." : "Invia richiesta demo";
+  }
+
+  function showError(message) {
+    errorNode.textContent = message;
+    errorNode.classList.remove("hidden");
+  }
+
+  function hideError() {
+    errorNode.textContent = "";
+    errorNode.classList.add("hidden");
+  }
+
+  function appendEvents(items) {
+    eventsList.innerHTML = "";
+    for (const item of items) {
+      const li = document.createElement("li");
+      li.className = "rounded-xl border border-slate-200 bg-slate-50 p-3";
+      li.textContent = item;
+      eventsList.appendChild(li);
     }
-  });
+  }
 
-  // Mobile Menu Toggle
-  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-  const mobileMenu = document.getElementById('mobile-menu');
+  function validateForm() {
+    const requiredFields = [
+      "businessName",
+      "contactName",
+      "email",
+      "phone",
+      "businessType",
+      "leadVolume",
+      "goal",
+      "urgency",
+      "timeline",
+      "consent"
+    ];
 
-  mobileMenuBtn?.addEventListener('click', () => {
-    mobileMenu?.classList.toggle('hidden');
-  });
+    for (const name of requiredFields) {
+      const field = form.elements.namedItem(name);
+      if (!field) return false;
+      if (field instanceof HTMLInputElement && field.type === "checkbox" && !field.checked) {
+        return false;
+      }
+      if ((field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) && !field.value.trim()) {
+        return false;
+      }
+    }
 
-  // Close mobile menu on link click
-  mobileMenu?.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      mobileMenu.classList.add('hidden');
+    return true;
+  }
+
+  function mapUrgencyToLegacy(value) {
+    if (value === "high") return "alta";
+    if (value === "medium") return "media";
+    return "bassa";
+  }
+
+  function mapServiceType(value) {
+    if (["clinica", "beauty", "home_services"].includes(value)) return "automation";
+    if (value === "legal_finance") return "intake_optimization";
+    return "other";
+  }
+
+  function buildIntakeContractPayload(payload) {
+    return {
+      name: payload.contactName,
+      email: payload.email,
+      phone: payload.phone,
+      company: payload.businessName,
+      message: [
+        `Obiettivo: ${payload.goal}`,
+        `Settore: ${payload.businessType}`,
+        `Richieste/mese: ${payload.leadVolume}`,
+        `Timeline: ${payload.timeline}`,
+        payload.notes ? `Note: ${payload.notes}` : null
+      ].filter(Boolean).join(" | "),
+      serviceType: mapServiceType(payload.businessType),
+      urgency: payload.urgency,
+      consent: payload.consent,
+      source: payload.source
+    };
+  }
+
+  async function submitIntake(payload) {
+    const intakePayload = buildIntakeContractPayload(payload);
+    const primaryRes = await fetch("/api/intake", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(intakePayload)
     });
+
+    if (primaryRes.ok) {
+      return { endpoint: "/api/intake", response: await primaryRes.json() };
+    }
+
+    if (![404, 405].includes(primaryRes.status)) {
+      const data = await primaryRes.json().catch(() => ({}));
+      const message = data?.error || "Errore durante invio al contratto intake";
+      throw new Error(message);
+    }
+
+    const legacyPayload = {
+      name: payload.contactName,
+      phone: payload.phone,
+      email: payload.email,
+      sintomi: payload.goal,
+      durata: payload.timeline,
+      urgenza: mapUrgencyToLegacy(payload.urgency),
+      disponibilita: `Volume richieste: ${payload.leadVolume}`,
+      notes: `${payload.businessName} | Settore: ${payload.businessType} | ${payload.notes || "no-notes"}`
+    };
+
+    const fallbackRes = await fetch("/api/lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(legacyPayload)
+    });
+
+    const fallbackJson = await fallbackRes.json().catch(() => ({}));
+    if (!fallbackRes.ok) {
+      throw new Error(fallbackJson?.error || "Errore durante invio fallback su /api/lead");
+    }
+
+    return { endpoint: "/api/lead", response: fallbackJson };
+  }
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    hideError();
+
+    if (!validateForm()) {
+      showError("Completa tutti i campi obbligatori prima di inviare.");
+      setState("Dati incompleti", "Verifica i campi obbligatori evidenziati nel form.");
+      return;
+    }
+
+    const formData = new FormData(form);
+    const payload = {
+      businessName: String(formData.get("businessName") || "").trim(),
+      contactName: String(formData.get("contactName") || "").trim(),
+      email: String(formData.get("email") || "").trim(),
+      phone: String(formData.get("phone") || "").trim(),
+      businessType: String(formData.get("businessType") || "").trim(),
+      leadVolume: String(formData.get("leadVolume") || "").trim(),
+      goal: String(formData.get("goal") || "").trim(),
+      urgency: String(formData.get("urgency") || "").trim(),
+      timeline: String(formData.get("timeline") || "").trim(),
+      notes: String(formData.get("notes") || "").trim(),
+      consent: Boolean(formData.get("consent")),
+      source: "portfolio_demo"
+    };
+
+    setLoading(true);
+    setState("Invio in corso", "Stiamo validando il payload e inviando la richiesta...");
+
+    try {
+      const result = await submitIntake(payload);
+      const ticketId =
+        result.response?.intakeId || result.response?.pazienteId || result.response?.id || "n/a";
+
+      setState(
+        "Richiesta inviata con successo",
+        `Endpoint usato: ${result.endpoint}. ID evento: ${ticketId}.`
+      );
+
+      appendEvents([
+        `1) Payload validato lato client alle ${new Date().toLocaleTimeString("it-IT")}`,
+        `2) Richiesta inviata a ${result.endpoint}`,
+        "3) Evento pronto per routing n8n e follow-up operativo"
+      ]);
+
+      form.reset();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Errore imprevisto durante invio";
+      showError(message);
+      setState("Invio fallito", "Controlla il messaggio errore e riprova.");
+      appendEvents([
+        `Errore: ${message}`,
+        "Verifica disponibilita endpoint API e contratto payload"
+      ]);
+    } finally {
+      setLoading(false);
+    }
   });
 </script>

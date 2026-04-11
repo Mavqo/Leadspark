@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "data": {
+    "leads": {},
+    "sessions": {},
+    "intakeSubmissions": {
+      "intake_1775763231257_9tdbr2": {
+        "id": "intake_1775763231257_9tdbr2",
+        "name": "Marco Rossi",
+        "email": "marco.rossi@example.com",
+        "phone": "+393331234567",
+        "company": "Studio Rossi",
+        "website": "https://studiorossi.it",
+        "message": "Need help improving intake and follow-up automation for our clinic.",
+        "serviceType": "automation",
+        "urgency": "medium",
+        "consent": true,
+        "source": "portfolio_form",
+        "workflowStatus": "automation_dispatched",
+        "createdAt": "2026-04-09T19:33:51.257Z",
+        "updatedAt": "2026-04-09T19:33:51.274Z"
+      },
+      "intake_1775763231268_zq5rl4": {
+        "id": "intake_1775763231268_zq5rl4",
+        "name": "Marco Rossi",
+        "email": "marco.rossi@example.com",
+        "phone": "+393331234567",
+        "company": "Studio Rossi",
+        "website": "https://studiorossi.it",
+        "message": "Need help improving intake and follow-up automation for our clinic.",
+        "serviceType": "automation",
+        "urgency": "medium",
+        "consent": true,
+        "source": "portfolio_form",
+        "workflowStatus": "queued_for_automation",
+        "createdAt": "2026-04-09T19:33:51.268Z",
+        "updatedAt": "2026-04-09T19:33:51.276Z"
+      }
+    },
+    "intakeEvents": {
+      "intake_1775763231257_9tdbr2": [
+        {
+          "id": "evt_1775763231263_4fe8yk",
+          "intakeId": "intake_1775763231257_9tdbr2",
+          "type": "intake.received",
+          "timestamp": "2026-04-09T19:33:51.263Z",
+          "details": {
+            "serviceType": "automation",
+            "urgency": "medium",
+            "source": "portfolio_form"
+          }
+        },
+        {
+          "id": "evt_1775763231265_v1ttdw",
+          "intakeId": "intake_1775763231257_9tdbr2",
+          "type": "automation.dispatch.attempted",
+          "timestamp": "2026-04-09T19:33:51.265Z",
+          "details": {
+            "endpointConfigured": true
+          }
+        },
+        {
+          "id": "evt_1775763231274_h4r98u",
+          "intakeId": "intake_1775763231257_9tdbr2",
+          "type": "automation.dispatch.succeeded",
+          "timestamp": "2026-04-09T19:33:51.274Z",
+          "details": {
+            "responseStatus": 200
+          }
+        }
+      ],
+      "intake_1775763231268_zq5rl4": [
+        {
+          "id": "evt_1775763231273_eqkoe1",
+          "intakeId": "intake_1775763231268_zq5rl4",
+          "type": "intake.received",
+          "timestamp": "2026-04-09T19:33:51.273Z",
+          "details": {
+            "serviceType": "automation",
+            "urgency": "medium",
+            "source": "portfolio_form"
+          }
+        },
+        {
+          "id": "evt_1775763231277_zq90ug",
+          "intakeId": "intake_1775763231268_zq5rl4",
+          "type": "automation.dispatch.attempted",
+          "timestamp": "2026-04-09T19:33:51.277Z",
+          "details": {
+            "endpointConfigured": true
+          }
+        }
+      ]
+    }
+  }
+}

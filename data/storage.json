@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "data": {
+    "leads": {
+      "paz_1775669179371_auvrz0n": {
+        "id": "paz_1775669179371_auvrz0n",
+        "name": "QA Test",
+        "phone": "+419900000000",
+        "email": "qa@example.com",
+        "sintomi": "Dolore spalla destra da 2 settimane",
+        "durata": "2 settimane",
+        "urgenza": "media",
+        "disponibilita": "Domani mattina",
+        "notes": "Test",
+        "source": "chatbot",
+        "createdAt": "2026-04-08T17:26:19.371Z"
+      }
+    },
+    "sessions": {},
+    "intakeSubmissions": {},
+    "intakeEvents": {}
+  }
+}

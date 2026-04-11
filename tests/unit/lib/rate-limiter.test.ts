@@ -4,6 +4,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mkdirSync, rmSync } from 'node:fs';
+import path from 'node:path';
 import { rateLimiter, createRateLimitResponse } from '../../../src/lib/rate-limiter';
 
 // Import RateLimiter class for static method tests
@@ -240,6 +242,59 @@ describe('RateLimiter', () => {
       // L'entry dovrebbe essere stata rimossa
       // @ts-expect-error
       expect(rateLimiter.storage.has(key)).toBe(false);
+    });
+  });
+
+  describe('persistence', () => {
+    it('dovrebbe mantenere i contatori dopo restart (nuova istanza)', () => {
+      const baseDir = process.env.LEADSPARK_DATA_DIR;
+      const baseFile = process.env.RATE_LIMIT_STORAGE_FILE;
+      const baseMax = process.env.RATE_LIMIT_MAX_ENTRIES;
+      const tempDir = path.join(process.cwd(), '.tmp-test-data', `rate-limiter-${Date.now()}`);
+
+      rmSync(tempDir, { recursive: true, force: true });
+      mkdirSync(tempDir, { recursive: true });
+      process.env.LEADSPARK_DATA_DIR = tempDir;
+      delete process.env.RATE_LIMIT_STORAGE_FILE;
+
+      const firstInstance = new RateLimiter();
+      const first = firstInstance.check('persist-ip', 'lead:ip');
+      expect(first.allowed).toBe(true);
+      expect(first.remaining).toBe(9);
+
+      const secondInstance = new RateLimiter();
+      const second = secondInstance.check('persist-ip', 'lead:ip');
+      expect(second.allowed).toBe(true);
+      expect(second.remaining).toBe(8);
+
+      process.env.LEADSPARK_DATA_DIR = baseDir;
+      process.env.RATE_LIMIT_STORAGE_FILE = baseFile;
+      process.env.RATE_LIMIT_MAX_ENTRIES = baseMax;
+    });
+
+    it('dovrebbe rispettare il limite massimo di entry configurato', () => {
+      const baseDir = process.env.LEADSPARK_DATA_DIR;
+      const baseFile = process.env.RATE_LIMIT_STORAGE_FILE;
+      const baseMax = process.env.RATE_LIMIT_MAX_ENTRIES;
+      const tempDir = path.join(process.cwd(), '.tmp-test-data', `rate-limiter-bounds-${Date.now()}`);
+
+      rmSync(tempDir, { recursive: true, force: true });
+      mkdirSync(tempDir, { recursive: true });
+      process.env.LEADSPARK_DATA_DIR = tempDir;
+      process.env.RATE_LIMIT_MAX_ENTRIES = '2';
+      delete process.env.RATE_LIMIT_STORAGE_FILE;
+
+      const limiter = new RateLimiter();
+      limiter.check('ip-1', 'chat:ip');
+      limiter.check('ip-2', 'chat:ip');
+      limiter.check('ip-3', 'chat:ip');
+
+      const stats = limiter.getStats();
+      expect(stats.totalEntries).toBeLessThanOrEqual(2);
+
+      process.env.LEADSPARK_DATA_DIR = baseDir;
+      process.env.RATE_LIMIT_STORAGE_FILE = baseFile;
+      process.env.RATE_LIMIT_MAX_ENTRIES = baseMax;
     });
   });
 });

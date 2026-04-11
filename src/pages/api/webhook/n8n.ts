@@ -16,11 +16,8 @@ const webhookEventSchema = z.object({
   })
 });
 
-// Secret per verifica HMAC
-// SECURITY FIX: Removed hardcoded default secret - now throws if not configured
-const WEBHOOK_SECRET = import.meta.env.WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
-if (!WEBHOOK_SECRET) {
-  throw new Error('WEBHOOK_SECRET environment variable is required');
+function getWebhookSecret(): string | undefined {
+  return import.meta.env.WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -29,6 +26,25 @@ export const POST: APIRoute = async ({ request }) => {
   // Handle CORS preflight
   const preflight = handleCorsPreflight(request);
   if (preflight) return applySecurityHeaders(preflight);
+
+  const webhookSecret = getWebhookSecret();
+  if (!webhookSecret) {
+    const errorResponse: ApiError = {
+      error: 'Webhook signing key is not configured',
+      code: 'NOT_CONFIGURED'
+    };
+    const response = new Response(
+      JSON.stringify(errorResponse),
+      {
+        status: 503,
+        headers: {
+          'Content-Type': 'application/json',
+          ...getCorsHeaders(request)
+        }
+      }
+    );
+    return applySecurityHeaders(response);
+  }
   
   try {
     // 1. Rate limiting
@@ -88,7 +104,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
     
     // 4. Verifica firma
-    const isValid = await verifySignature(bodyText, signature);
+    const isValid = await verifySignature(bodyText, signature, webhookSecret);
     if (!isValid) {
       console.warn('[Webhook n8n] Invalid signature');
       const error: ApiError = {
@@ -250,12 +266,12 @@ async function handleNotificationFailed(event: WebhookEvent): Promise<void> {
 }
 
 // Verifica HMAC signature
-async function verifySignature(payload: string, signature: string): Promise<boolean> {
+async function verifySignature(payload: string, signature: string, webhookSecret: string): Promise<boolean> {
   try {
     const encoder = new TextEncoder();
     const key = await crypto.subtle.importKey(
       'raw',
-      encoder.encode(WEBHOOK_SECRET),
+      encoder.encode(webhookSecret),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['sign']

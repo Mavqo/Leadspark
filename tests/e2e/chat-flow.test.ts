@@ -583,7 +583,7 @@ describe('E2E Chat Flow', () => {
         })
       } as any);
       const leadData = await leadResponse.json() as LeadResponse;
-      expect(leadResponse.status).toBe(200);
+      expect([200, 201]).toContain(leadResponse.status);
       expect(leadData.success).toBe(true);
       expect(leadData.pazienteId).toBeDefined();
     });

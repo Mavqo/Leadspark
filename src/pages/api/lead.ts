@@ -3,6 +3,12 @@ import { z } from 'zod';
 import { rateLimiter, createRateLimitResponse, RateLimiter } from '../../lib/rate-limiter';
 import { getCorsHeaders, handleCorsPreflight } from '../../lib/cors';
 import { applySecurityHeaders, parseJsonBody, sanitizeHtml } from '../../lib/security';
+import {
+  cleanupLeadsOlderThan,
+  findLeadByPhoneInLast24Hours,
+  listLeads,
+  saveLead
+} from '../../lib/persistence';
 import type { Paziente, LeadRequest, LeadResponse, ApiError } from '../../types/paziente';
 
 // Schema validazione strict
@@ -24,19 +30,14 @@ const leadRequestSchema = z.object({
   notes: z.string().max(2000).optional().transform(s => s?.trim())
 });
 
-// In-memory storage per demo
-const leadsStore = new Map<string, Paziente>();
-
 // Add admin rate limiter config (5 requests per minute)
 rateLimiter.setConfig('admin:lead', 60 * 1000, 5);
 
 // Webhook URL (da configurare via env)
 const WEBHOOK_URL = import.meta.env.N8N_WEBHOOK_URL || process.env.N8N_WEBHOOK_URL || '';
 
-// SECURITY FIX: Removed hardcoded default secret - now throws if not configured
-const WEBHOOK_SECRET = import.meta.env.WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
-if (!WEBHOOK_SECRET) {
-  throw new Error('WEBHOOK_SECRET environment variable is required');
+function getWebhookSecret(): string | undefined {
+  return import.meta.env.WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -99,7 +100,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (data.notes) data.notes = sanitizeHtml(data.notes);
     
     // 4. Verifica duplicato (stesso telefono nelle ultime 24h)
-    const existingLead = findDuplicateByPhone(data.phone);
+    const existingLead = await findLeadByPhoneInLast24Hours(data.phone);
     if (existingLead) {
       // SECURITY FIX: Masked phone number in logs to prevent PII exposure
       const maskPhone = (p: string) => p.slice(0, 6) + '****';
@@ -134,14 +135,18 @@ export const POST: APIRoute = async ({ request }) => {
     };
     
     // 6. Salva in memoria
-    leadsStore.set(pazienteId, paziente);
-    console.log(`[Lead API] Lead saved: ${pazienteId}, Total leads: ${leadsStore.size}`);
+    await saveLead(paziente);
+    const totalLeads = (await listLeads()).length;
+    console.log(`[Lead API] Lead saved: ${pazienteId}, Total leads: ${totalLeads}`);
     
     // 7. Chiama webhook n8n (async, non bloccare response)
-    if (WEBHOOK_URL) {
-      callWebhook(paziente).catch(err => {
+    const webhookSecret = getWebhookSecret();
+    if (WEBHOOK_URL && webhookSecret) {
+      callWebhook(paziente, webhookSecret).catch(err => {
         console.error('[Lead API] Webhook error:', err);
       });
+    } else if (WEBHOOK_URL && !webhookSecret) {
+      console.error('[Lead API] WEBHOOK_SECRET missing, skipping webhook call');
     } else {
       console.log('[Lead API] No webhook URL configured, skipping webhook call');
       // SECURITY FIX: Masked PII data in logs - name, phone, sintomi truncated
@@ -201,7 +206,7 @@ export const POST: APIRoute = async ({ request }) => {
 };
 
 // Endpoint GET per listare leads (admin only)
-export const GET: APIRoute = ({ request }) => {
+export const GET: APIRoute = async ({ request }) => {
   const startTime = Date.now();
   
   // Handle CORS preflight
@@ -247,8 +252,7 @@ export const GET: APIRoute = ({ request }) => {
   const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
   const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') || '20', 10))); // Max 100 per page
   
-  const allLeads = Array.from(leadsStore.values())
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  const allLeads = await listLeads();
   
   const total = allLeads.length;
   const totalPages = Math.ceil(total / limit);
@@ -286,23 +290,8 @@ export const GET: APIRoute = ({ request }) => {
   return applySecurityHeaders(response);
 };
 
-// Trova duplicato per telefono (ultime 24h)
-function findDuplicateByPhone(phone: string): Paziente | null {
-  const normalizedPhone = phone.replace(/[\s\-\(\)\.]/g, '');
-  const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-  
-  for (const paziente of leadsStore.values()) {
-    const storedPhone = paziente.phone.replace(/[\s\-\(\)\.]/g, '');
-    if (storedPhone === normalizedPhone && paziente.createdAt.getTime() > oneDayAgo) {
-      return paziente;
-    }
-  }
-  
-  return null;
-}
-
 // Chiama webhook n8n
-async function callWebhook(paziente: Paziente): Promise<void> {
+async function callWebhook(paziente: Paziente, webhookSecret: string): Promise<void> {
   if (!WEBHOOK_URL) return;
   
   const payload = {
@@ -318,7 +307,7 @@ async function callWebhook(paziente: Paziente): Promise<void> {
   };
   
   // Genera HMAC signature
-  const signature = await generateSignature(JSON.stringify(payload));
+  const signature = await generateSignature(JSON.stringify(payload), webhookSecret);
   
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
@@ -352,11 +341,11 @@ async function callWebhook(paziente: Paziente): Promise<void> {
 }
 
 // Genera HMAC signature
-async function generateSignature(payload: string): Promise<string> {
+async function generateSignature(payload: string, webhookSecret: string): Promise<string> {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
     'raw',
-    encoder.encode(WEBHOOK_SECRET),
+    encoder.encode(webhookSecret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
@@ -374,18 +363,31 @@ async function generateSignature(payload: string): Promise<string> {
 }
 
 // Cleanup leads vecchi (opzionale, mantiene solo ultimi 30 giorni)
-setInterval(() => {
-  const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
-  let cleaned = 0;
-  
-  leadsStore.forEach((lead, id) => {
-    if (lead.createdAt.getTime() < thirtyDaysAgo) {
-      leadsStore.delete(id);
-      cleaned++;
+// Guard timer setup so module load does not fail in runtimes that restrict timers.
+const DAILY_CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const LEAD_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
+function runLeadCleanup(): void {
+  cleanupLeadsOlderThan(LEAD_MAX_AGE_MS)
+    .then((cleaned) => {
+      if (cleaned > 0) {
+        console.log(`[Lead API] Cleaned up ${cleaned} old leads`);
+      }
+    })
+    .catch((error) => {
+      console.error('[Lead API] Lead cleanup error:', error);
+    });
+}
+
+try {
+  if (typeof globalThis.setInterval === 'function') {
+    const timer = globalThis.setInterval(runLeadCleanup, DAILY_CLEANUP_INTERVAL_MS);
+    if (typeof (timer as NodeJS.Timeout).unref === 'function') {
+      (timer as NodeJS.Timeout).unref();
     }
-  });
-  
-  if (cleaned > 0) {
-    console.log(`[Lead API] Cleaned up ${cleaned} old leads`);
+  } else {
+    console.warn('[Lead API] setInterval unavailable; skipping background cleanup timer');
   }
-}, 24 * 60 * 60 * 1000); // Ogni giorno
+} catch (error) {
+  console.warn('[Lead API] Failed to initialize background cleanup timer:', error);
+}

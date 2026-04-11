@@ -5,6 +5,8 @@
 
 import { vi, beforeEach, afterEach } from 'vitest';
 import '@testing-library/jest-dom';
+import { mkdirSync, rmSync } from 'node:fs';
+import path from 'node:path';
 
 // ============================================================================
 // GLOBAL MOCKS
@@ -15,6 +17,16 @@ process.env.OPENAI_API_KEY = 'test-openai-key';
 process.env.WEBHOOK_SECRET = 'test-webhook-secret';
 process.env.N8N_WEBHOOK_URL = 'https://n8n.test/webhook/test';
 process.env.ADMIN_TOKEN = 'test-admin-token';
+process.env.LEADSPARK_DATA_DIR = path.join(process.cwd(), '.tmp-test-data');
+
+function resetPersistenceDir() {
+  const dataDir = process.env.LEADSPARK_DATA_DIR;
+  if (!dataDir) return;
+  rmSync(dataDir, { recursive: true, force: true });
+  mkdirSync(dataDir, { recursive: true });
+}
+
+resetPersistenceDir();
 
 // ============================================================================
 // CRYPTO MOCK (per ambienti senza Web Crypto API completa)

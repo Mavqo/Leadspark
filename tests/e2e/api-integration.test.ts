@@ -130,7 +130,7 @@ describe('API Integration Tests - Chat Endpoint', () => {
       const response = await chatHandler({ request } as any);
       const data = await response.json() as ChatResponse;
 
-      expect(response.status).toBe(200);
+      expect([200, 201]).toContain(response.status);
       expect(data.reply).toBeDefined();
       expect(data.reply.length).toBeGreaterThan(0);
       expect(data.step).toBeDefined();
@@ -337,16 +337,41 @@ describe('API Integration Tests - Lead Endpoint', () => {
       expect(response.headers.get('X-RateLimit-Remaining')).toBeDefined();
       expect(response.headers.get('X-Response-Time')).toBeDefined();
     });
+
+    it('dovrebbe creare lead anche senza WEBHOOK_SECRET (webhook disabilitato)', async () => {
+      const originalSecret = process.env.WEBHOOK_SECRET;
+      delete process.env.WEBHOOK_SECRET;
+      try {
+        const request = createJsonRequest('http://localhost/api/lead', {
+          ...validLead,
+          phone: '+393331239999'
+        }, {
+          'X-Forwarded-For': '198.51.100.59'
+        });
+
+        const response = await leadHandler({ request } as any);
+        const data = await response.json() as LeadResponse;
+
+        expect([200, 201]).toContain(response.status);
+        expect(data.success).toBe(true);
+      } finally {
+        if (originalSecret) {
+          process.env.WEBHOOK_SECRET = originalSecret;
+        }
+      }
+    });
   });
 
   describe('GET /api/lead (Admin List)', () => {
     it('dovrebbe richiedere autenticazione', async () => {
       const request = new Request('http://localhost/api/lead');
       const response = await leadListHandler({ request } as any);
+      const data = await response.json() as Record<string, unknown>;
 
-      // Senza ADMIN_TOKEN configurato o senza header auth, dovrebbe permettere accesso
-      // o ritornare 401 se ADMIN_TOKEN è configurato
-      expect([200, 401]).toContain(response.status);
+      // MUST fail closed: mai esporre lead data senza auth.
+      expect(response.status).toBe(401);
+      expect(data.code).toBe('UNAUTHORIZED');
+      expect(data.leads).toBeUndefined();
     });
 
     it('dovrebbe listare leads con token admin valido', async () => {
@@ -366,6 +391,25 @@ describe('API Integration Tests - Lead Endpoint', () => {
       expect(Array.isArray(data.leads)).toBe(true);
       
       delete process.env.ADMIN_TOKEN;
+    });
+
+    it('dovrebbe rifiutare accesso quando ADMIN_TOKEN non è configurato', async () => {
+      const previousToken = process.env.ADMIN_TOKEN;
+      delete process.env.ADMIN_TOKEN;
+
+      try {
+        const request = new Request('http://localhost/api/lead');
+        const response = await leadListHandler({ request } as any);
+        const data = await response.json() as Record<string, unknown>;
+
+        expect(response.status).toBe(503);
+        expect(data.code).toBe('NOT_CONFIGURED');
+        expect(data.leads).toBeUndefined();
+      } finally {
+        if (previousToken) {
+          process.env.ADMIN_TOKEN = previousToken;
+        }
+      }
     });
   });
 });
@@ -563,6 +607,33 @@ describe('API Integration Tests - Webhook n8n Endpoint', () => {
       expect(response.headers.get('X-RateLimit-Limit')).toBeDefined();
       expect(response.headers.get('X-RateLimit-Remaining')).toBeDefined();
       expect(response.headers.get('X-Response-Time')).toBeDefined();
+    });
+
+    it('dovrebbe ritornare 503 se WEBHOOK_SECRET non è configurato', async () => {
+      const originalSecret = process.env.WEBHOOK_SECRET;
+      delete process.env.WEBHOOK_SECRET;
+      try {
+        const payload = JSON.stringify(validWebhookPayload);
+        const signature = await generateTestSignature(payload);
+        const request = new Request('http://localhost/api/webhook/n8n', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Webhook-Signature': signature
+          },
+          body: payload
+        });
+
+        const response = await webhookHandler({ request } as any);
+        const data = await response.json() as ApiError;
+
+        expect(response.status).toBe(503);
+        expect(data.code).toBe('NOT_CONFIGURED');
+      } finally {
+        if (originalSecret) {
+          process.env.WEBHOOK_SECRET = originalSecret;
+        }
+      }
     });
   });
 

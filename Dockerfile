@@ -24,7 +24,7 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json ./
 COPY tailwind.config.js ./
-COPY postcss.config.js ./
+COPY postcss.config.cjs ./
 COPY astro.config.mjs ./
 COPY tsconfig.json ./
 
@@ -49,17 +49,26 @@ WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S astro -u 1001
 
+ARG APP_GIT_SHA=unknown
+ARG APP_BUILD_TIME=unknown
+
 # Set environment
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV APP_GIT_SHA=${APP_GIT_SHA}
+ENV APP_BUILD_TIME=${APP_BUILD_TIME}
 
 # Copy only necessary files from builder
 COPY --from=builder --chown=astro:nodejs /app/dist ./dist
 COPY --from=builder --chown=astro:nodejs /app/package.json ./
+COPY --from=builder --chown=astro:nodejs /app/package-lock.json ./
 
 # Install only production dependencies
-RUN npm ci --only=production && \
+RUN npm ci --omit=dev && \
     npm cache clean --force
+
+# Ensure default persistence path is writable by non-root runtime user
+RUN mkdir -p /app/data && chown -R astro:nodejs /app
 
 # Switch to non-root user
 USER astro
