@@ -113,10 +113,10 @@ const icons = {
                 <label for="service" class="form-label">Servizio di interesse</label>
                 <select id="service" name="service" class="form-input cursor-pointer">
                   <option value="">Seleziona un servizio...</option>
-                  <option value="sportiva">Fisioterapia Sportiva</option>
-                  <option value="post-operatoria">Riabilitazione Post-operatoria</option>
-                  <option value="manuale">Terapia Manuale</option>
-                  <option value="altro">Altro / Non so</option>
+                  <option value="website">Sito Web / Presenza Online</option>
+                  <option value="automation">Automazione e CRM</option>
+                  <option value="intake_optimization">Ottimizzazione Acquisizione Clienti</option>
+                  <option value="other">Altro / Non so</option>
                 </select>
               </div>
 
@@ -259,36 +259,70 @@ const icons = {
 </section>
 
 <script>
-  // Form submission handler with loading state
   const form = document.getElementById('contact-form') as HTMLFormElement;
   const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
   const btnText = document.getElementById('btn-text');
   const btnIcon = document.getElementById('btn-icon');
   const btnSpinner = document.getElementById('btn-spinner');
 
+  function setLoading(loading: boolean) {
+    submitBtn.disabled = loading;
+    btnText?.classList.toggle('hidden', loading);
+    btnIcon?.classList.toggle('hidden', loading);
+    btnSpinner?.classList.toggle('hidden', !loading);
+    submitBtn.classList.toggle('opacity-75', loading);
+    submitBtn.classList.toggle('cursor-not-allowed', loading);
+  }
+
+  function showResult(success: boolean, message: string) {
+    const existing = document.getElementById('form-result');
+    if (existing) existing.remove();
+
+    const div = document.createElement('div');
+    div.id = 'form-result';
+    div.className = success
+      ? 'mt-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-sm font-medium'
+      : 'mt-4 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm font-medium';
+    div.textContent = message;
+    form.appendChild(div);
+  }
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    // Show loading state
-    submitBtn.disabled = true;
-    btnText?.classList.add('hidden');
-    btnIcon?.classList.add('hidden');
-    btnSpinner?.classList.remove('hidden');
-    submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
-    
-    // Simulate API call (replace with actual implementation)
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Reset form and button
-    form.reset();
-    submitBtn.disabled = false;
-    btnText?.classList.remove('hidden');
-    btnIcon?.classList.remove('hidden');
-    btnSpinner?.classList.add('hidden');
-    submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-    
-    // Show success message (you can replace this with a toast notification)
-    alert('Grazie per la tua richiesta! Ti contatteremo presto.');
+    setLoading(true);
+
+    const data = new FormData(form);
+    const payload = {
+      name: data.get('name') as string,
+      email: data.get('email') as string,
+      phone: (data.get('phone') as string) || undefined,
+      message: data.get('message') as string,
+      serviceType: (data.get('service') as string) || 'other',
+      urgency: 'medium' as const,
+      consent: true as const,
+      source: 'leadspark_contact_form'
+    };
+
+    try {
+      const res = await fetch('/api/intake', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        form.reset();
+        showResult(true, '✓ Richiesta inviata! Ti risponderemo entro 24 ore.');
+      } else {
+        const body = await res.json().catch(() => ({}));
+        const msg = body?.error || `Errore ${res.status}. Riprova o contattaci direttamente.`;
+        showResult(false, msg);
+      }
+    } catch {
+      showResult(false, 'Errore di rete. Controlla la connessione e riprova.');
+    } finally {
+      setLoading(false);
+    }
   });
 </script>
 
