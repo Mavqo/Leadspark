@@ -34,6 +34,32 @@ const intakeRequestSchema = z.object({
 
 rateLimiter.setConfig('intake:ip', 60 * 1000, 20);
 
+function mapBusinessTypeToServiceType(businessType: string): string {
+  if (['clinica', 'beauty', 'home_services'].includes(businessType)) return 'automation';
+  if (businessType === 'legal_finance') return 'intake_optimization';
+  return 'other';
+}
+
+function normalizeIntakePayload(raw: Record<string, unknown>): Record<string, unknown> {
+  const normalized: Record<string, unknown> = { ...raw };
+
+  // Map frontend form field names to backend schema field names
+  if (normalized.name === undefined && normalized.contactName !== undefined) {
+    normalized.name = normalized.contactName;
+  }
+  if (normalized.company === undefined && normalized.businessName !== undefined) {
+    normalized.company = normalized.businessName;
+  }
+  if (normalized.message === undefined && normalized.goal !== undefined) {
+    normalized.message = normalized.goal;
+  }
+  if (normalized.serviceType === undefined && normalized.businessType !== undefined) {
+    normalized.serviceType = mapBusinessTypeToServiceType(String(normalized.businessType));
+  }
+
+  return normalized;
+}
+
 function getWebhookSecret(): string | undefined {
   return import.meta.env.WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
 }
@@ -90,7 +116,8 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const parsed = intakeRequestSchema.safeParse(bodyResult.data);
+    const normalized = normalizeIntakePayload(bodyResult.data as Record<string, unknown>);
+    const parsed = intakeRequestSchema.safeParse(normalized);
     if (!parsed.success) {
       return applySecurityHeaders(createValidationError(parsed.error));
     }
